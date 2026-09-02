@@ -51,7 +51,7 @@ public final class FlySpeedModule extends Module {
         }
         class_1656 abilities = Constants.mc.field_1724.method_31549();
         if (abilities != null) {
-            abilities.field_7481 = DEFAULT_FLY_SPEED;
+            abilities.method_7248(DEFAULT_FLY_SPEED);
         }
     }
 
@@ -66,13 +66,13 @@ public final class FlySpeedModule extends Module {
         }
         if (!abilities.field_7479) {
             // Not flying (e.g. creative flight off): keep vanilla behaviour.
-            if (abilities.field_7481 != DEFAULT_FLY_SPEED) {
-                abilities.field_7481 = DEFAULT_FLY_SPEED;
+            if (abilities.method_7252() != DEFAULT_FLY_SPEED) {
+                abilities.method_7248(DEFAULT_FLY_SPEED);
             }
             return;
         }
         // Scale creative fly speed (vanilla default is 0.05).
-        abilities.field_7481 = (float)(0.05 * this.speed.getValue());
+        abilities.method_7248((float)(0.05 * this.speed.getValue()));
         // Optional faster vertical movement while flying.
         if (this.verticalEnabled.getValue()) {
             double motionY = 0.0;

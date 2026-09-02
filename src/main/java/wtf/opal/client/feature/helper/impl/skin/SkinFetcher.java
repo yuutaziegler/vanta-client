@@ -149,7 +149,7 @@ public final class SkinFetcher {
                 class_1011 image = class_1011.method_4303(class_1011.class_1012.field_4997, ByteBuffer.wrap(pngBytes));
                 class_1043 texture = new class_1043(() -> "terentx/" + key, image);
                 final class_2960 id = class_2960.method_60655("terentx", "skins/" + key + ".png");
-                Constants.mc.field_1764.method_4616(id, texture);
+                Constants.mc.method_1531().method_4616(id, texture);
                 if (isSkin) {
                     data.skinTexture = id;
                 } else {

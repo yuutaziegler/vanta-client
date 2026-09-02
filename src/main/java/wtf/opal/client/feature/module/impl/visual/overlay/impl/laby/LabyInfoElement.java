@@ -88,7 +88,7 @@ public final class LabyInfoElement implements IOverlayElement {
             ++count;
         }
         if (this.showFps.getValue()) {
-            lines[count] = Constants.mc.field_1738 + " FPS";
+            lines[count] = Constants.mc.method_47599() + " FPS";
             ++count;
         }
         if (this.showPing.getValue()) {

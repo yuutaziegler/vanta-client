@@ -39,7 +39,7 @@ public final class PlayerListEntryMixin {
         if (this.field_3741 == null) {
             return;
         }
-        String ownName = this.field_3741.getName();
+        String ownName = this.field_3741.name();
         if (ownName == null) {
             return;
         }
@@ -77,8 +77,8 @@ public final class PlayerListEntryMixin {
 
     @Unique
     private String terminalName() {
-        return wtf.opal.client.Constants.mc.field_1726 != null
-            ? wtf.opal.client.Constants.mc.field_1726.method_1676()
+        return wtf.opal.client.Constants.mc.method_1548() != null
+            ? wtf.opal.client.Constants.mc.method_1548().method_1676()
             : "";
     }
 

@@ -40,7 +40,7 @@ extends class_437 {
 
     protected void method_25426() {
         super.method_25426();
-        this.method_37063((class_364)class_4185.method_46430((class_2561)class_2561.method_43470((String)"Done"), button -> this.field_22787.method_1507(this.parent)).method_46434(this.field_22789 / 2 - 100, this.field_22790 - 30, 200, 20).method_46431());
+        this.method_37063(class_4185.method_46430((class_2561)class_2561.method_43470((String)"Done"), button -> this.field_22787.method_1507(this.parent)).method_46434(this.field_22789 / 2 - 100, this.field_22790 - 30, 200, 20).method_46431());
     }
 
     public void method_25394(class_332 context, int mouseX, int mouseY, float delta) {

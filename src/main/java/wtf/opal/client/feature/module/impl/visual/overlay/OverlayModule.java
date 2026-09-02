@@ -20,6 +20,7 @@ import wtf.opal.client.feature.module.impl.visual.overlay.IOverlayElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.armor.ArmorHUDElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.client.ClientElements;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.client.LogoElement;
+import wtf.opal.client.feature.module.impl.visual.overlay.impl.durability.ToolDurabilityElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.dynamicisland.DynamicIslandElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.keystrokes.KeystrokesElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.modulelist.ToggledModulesElement;
@@ -74,6 +75,7 @@ extends Module {
         this.register(new ArmorHUDElement(this));
         this.register(new KeystrokesElement(this));
         this.register(new ScaffoldElement(this));
+        this.register(new ToolDurabilityElement(this));
     }
 
     private <T extends IOverlayElement> T register(T element) {

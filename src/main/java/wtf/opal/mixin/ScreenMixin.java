@@ -41,6 +41,7 @@ import net.minecraft.class_4185;
 import net.minecraft.class_429;
 import net.minecraft.class_433;
 import net.minecraft.class_437;
+import net.minecraft.class_465;
 import net.minecraft.class_500;
 import net.minecraft.class_526;
 import net.minecraft.class_639;
@@ -52,11 +53,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import wtf.opal.client.renderer.NVGRenderer;
+import wtf.opal.client.renderer.VantaGlass;
 import wtf.opal.client.renderer.image.NVGImageRenderer;
 import wtf.opal.client.renderer.repository.ImageRepository;
 import wtf.opal.client.screen.TerentXClientMenuScreen;
 import wtf.opal.client.screen.click.dropdown.DropdownClickGUI;
 import wtf.opal.client.screen.hud.HUDEditorScreen;
+import wtf.opal.client.screen.hud.UIEditorScreen;
+import wtf.opal.client.screen.vanta.VantaClickGUIScreen;
 import wtf.opal.mixin.ScreenAccessor;
 import wtf.opal.utility.misc.RunnableClickEvent;
 
@@ -101,7 +105,40 @@ public abstract class ScreenMixin {
     @Inject(method={"renderBackground"}, at={@At(value="HEAD")}, cancellable=true)
     private void onRenderCustomScreenBackground(class_332 context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
         class_437 screen = (class_437)this;
-        if (screen instanceof TerentXClientMenuScreen || screen instanceof DropdownClickGUI || screen instanceof HUDEditorScreen) {
+        if (screen instanceof TerentXClientMenuScreen || screen instanceof DropdownClickGUI || screen instanceof HUDEditorScreen || screen instanceof VantaClickGUIScreen) {
+            // Custom menus paint their own background; a fullscreen dim
+            // here is drawn in NVG on the menu itself (never opaque).
+            ci.cancel();
+            return;
+        }
+        if (screen instanceof UIEditorScreen) {
+            // HUD editor draws its own light dim in its render method.
+            ci.cancel();
+            return;
+        }
+        if (screen instanceof class_465) {
+            // Container screens (inventory, chests, anvils, ...): a LIGHT
+            // dim + liquid-glass frame around the slot panel.  Never opaque,
+            // so the inventory can never look black/"intunecat".
+            context.method_25294(0, 0, screen.field_22789, screen.field_22790, 0x33000000);
+            boolean frameStarted = NVGRenderer.beginFrame();
+            try {
+                if (screen instanceof HandledScreenAccessor) {
+                    HandledScreenAccessor acc = (HandledScreenAccessor) screen;
+                    int panelX = acc.opal$getX();
+                    int panelY = acc.opal$getY();
+                    int panelW = acc.opal$getBackgroundWidth();
+                    int panelH = acc.opal$getBackgroundHeight();
+                    if (panelW > 0 && panelH > 0) {
+                        VantaGlass.frame(panelX - 8.0f, panelY - 8.0f, panelW + 16.0f, panelH + 16.0f, 10.0f);
+                    }
+                }
+            }
+            catch (Throwable ignored) {
+            }
+            if (frameStarted) {
+                NVGRenderer.endFrameAndReset(false);
+            }
             ci.cancel();
             return;
         }
@@ -127,6 +164,36 @@ public abstract class ScreenMixin {
             if (frameStarted) {
                 NVGRenderer.endFrameAndReset(false);
             }
+            ci.cancel();
+        }
+    }
+
+    /*
+     * In 1.21.9+ vanilla splits the dimming into renderBackground() (blur)
+     * and renderDarkening(DrawContext) (the dark overlay).  The default
+     * darkening makes containers look black ("intunecat").  Cancel it for
+     * every screen: the client paints its own LIGHT dim where needed
+     * (see the class_465 branch above and the custom screens).
+     */
+    @Inject(method = {"renderDarkening(Lnet/minecraft/client/gui/DrawContext;)V"}, at = {@At(value = "HEAD")}, cancellable = true)
+    private void onRenderDarkening(class_332 context, CallbackInfo ci) {
+        class_437 screen = (class_437) this;
+        if (screen instanceof class_465
+                || screen instanceof TerentXClientMenuScreen
+                || screen instanceof DropdownClickGUI
+                || screen instanceof HUDEditorScreen
+                || screen instanceof VantaClickGUIScreen
+                || screen instanceof UIEditorScreen) {
+            ci.cancel();
+        }
+    }
+
+    /* Skip the blur pass for the fully custom glass screens so they stay
+       light and transparent (it is a post-effect on the world anyway). */
+    @Inject(method = {"applyBlur(Lnet/minecraft/client/gui/DrawContext;)V"}, at = {@At(value = "HEAD")}, cancellable = true, require = 0)
+    private void onApplyBlur(class_332 context, CallbackInfo ci) {
+        class_437 screen = (class_437) this;
+        if (screen instanceof VantaClickGUIScreen || screen instanceof UIEditorScreen) {
             ci.cancel();
         }
     }

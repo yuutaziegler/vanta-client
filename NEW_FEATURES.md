@@ -1,5 +1,52 @@
 # New Features Added to Vanta Client
 
+## 0. FULL UI REWRITE (v2.1.0) — "Liquid Glass" menus
+
+The entire client UI was rebuilt. Fixes for: black/dark inventory, missing
+ReGlass look, broken Right-Shift menu, and HUD editor that couldn't resize.
+
+### New Right-Shift menu (`VantaClickGUIScreen`)
+- **Right Shift opens the menu from anywhere** (inventory/chat/menus), and Right Shift / ESC closes it.
+- Liquid-glass window (frosted body, rim light, top sheen, soft shadow) — a self-contained
+  ReGlass-style look that needs no external shader mod (`VantaGlass`).
+- **Draggable window** (drag the title bar).
+- **Resize/zoom**: `-`/`+` buttons in the title bar, or hold **Ctrl + scroll**.
+- Left **category rail** (Combat, Movement, Visual, World, Utility, ...) + "All".
+- **Working search bar** (click it, type; filters by module name/description).
+- Module rows: left-click toggles, **+ / - expands settings**, **middle-mouse-click = bind key**.
+- Full property editing: boolean pills, **number sliders** (drag), **mode cyclers**
+  (left/right click cycles), and an **HSB color picker** (saturation/brightness box + hue bar).
+- Style selector in module settings: `Liquid Glass (new)` / `Modern TerentX` / `Dropdown`
+  (old dropdown GUI kept as a fallback).
+- Never paints an opaque backdrop — the screen can no longer appear black.
+
+### Inventory / containers
+- Removed the opaque dark overlay that made the player inventory look "intunecat".
+- Every container screen (inventory, chests, anvils, ...) now gets a **light dim + liquid-glass
+  frame** around the slot panel instead of a black fill. Slots stay fully visible.
+- The branding logo sits on a small glass plaque at the top without covering any slot.
+
+### HUD / UI Editor (`UIEditorScreen`)
+- Opened from the Visual category ("UI Editor") or the **HUD** button in the new menu.
+- Liquid-glass control window (movable, scalable).
+- **Drag any HUD element to move it** (polled every frame — works while holding the button).
+- **8 resize handles** (4 corners + 4 edges) on every element — drag to resize live.
+- **Right-click an element** = reset its position.
+- **H** toggles the help panel; **ESC / Right Shift** saves and exits.
+- Renders every overlay element (even inactive ones) so all are editable.
+
+### Other fixes
+- Old Dropdown ClickGUI: panels no longer shrink exponentially every frame (the scale bug).
+- Right-Shift handling moved to the keybind system (respects your `bindings.json`).
+
+### Rebuilding
+Run `build-vanta-ui.bat` (Windows) or `./build-vanta-ui.sh` (Linux/macOS).
+Requires JDK 21. Output jar: `build/libs/terentx-v0.1.jar`
+(copied to `vanta-client-2.1.0.jar`). Put it + `fabric-api-0.138.0+1.21.10.jar`
+in your mods folder and **delete the old vanta/terentx jar**.
+
+---
+
 ## 1. Tool Durability HUD Element
 **Location:** `Overlay > Tool Durability`
 

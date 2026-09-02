@@ -17,16 +17,17 @@ import wtf.opal.client.feature.module.ModuleCategory;
 import wtf.opal.client.feature.module.property.impl.mode.ModeProperty;
 import wtf.opal.client.screen.TerentXClientMenuScreen;
 import wtf.opal.client.screen.click.dropdown.DropdownClickGUI;
+import wtf.opal.client.screen.vanta.VantaClickGUIScreen;
 import wtf.opal.event.impl.game.PreGameTickEvent;
 import wtf.opal.event.subscriber.Subscribe;
 
 @Environment(value=EnvType.CLIENT)
 public final class ClickGUIModule
 extends Module {
-    private final ModeProperty<GUIMode> mode = new ModeProperty<GUIMode>("Style", GUIMode.MODERN);
+    private final ModeProperty<GUIMode> mode = new ModeProperty<GUIMode>("Style", GUIMode.LIQUID);
 
     public ClickGUIModule() {
-        super("Settings Menu", "Opens TerentX Client Menu", ModuleCategory.VISUAL);
+        super("Settings Menu", "Opens the client menu (Right Shift)", ModuleCategory.VISUAL);
         this.addProperties(this.mode);
     }
 
@@ -50,15 +51,25 @@ extends Module {
     }
 
     private void openGUI() {
-        if (this.mode.getValue() == GUIMode.DROPDOWN) {
-            Constants.mc.method_1507((class_437)new DropdownClickGUI());
-        } else {
-            Constants.mc.method_1507((class_437)new TerentXClientMenuScreen(null));
+        switch (this.mode.getValue()) {
+            case LIQUID: {
+                Constants.mc.method_1507((class_437)new VantaClickGUIScreen());
+                break;
+            }
+            case DROPDOWN: {
+                Constants.mc.method_1507((class_437)new DropdownClickGUI());
+                break;
+            }
+            case MODERN: {
+                Constants.mc.method_1507((class_437)new TerentXClientMenuScreen(null));
+                break;
+            }
         }
     }
 
     @Environment(value=EnvType.CLIENT)
     public static enum GUIMode {
+        LIQUID("Liquid Glass (new)"),
         MODERN("Modern TerentX"),
         DROPDOWN("Dropdown");
 

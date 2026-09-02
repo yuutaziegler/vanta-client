@@ -78,7 +78,7 @@ extends class_437 {
         for (int i = 0; i < categoryAmount; ++i) {
             CategoryPanel panel = this.categoryPanelList.get(i);
             float baseWidth = 95.0f;
-            float width = 95.0f * panelScale;
+            float width = baseWidth * panelScale;
             float height = 18.0f * panelScale;
             if (panel.getX() == 0.0f && panel.getY() == 0.0f) {
                 float y = 24.0f;
@@ -88,7 +88,11 @@ extends class_437 {
                 float x = startX + (float)i * (width + spacing);
                 panel.setDimensions(x, 24.0f, width, height);
             } else {
-                panel.setDimensions(panel.getX(), panel.getY(), panel.getWidth() == 0.0f ? width : panel.getWidth() * panelScale, height);
+                // Keep the panel's own (possibly moved/resized) geometry and
+                // only scale from the fixed base width.  The old code did
+                // panel.getWidth()*panelScale every frame, which made panels
+                // shrink exponentially on each render.
+                panel.setDimensions(panel.getX(), panel.getY(), width, height);
             }
             panel.render(context, mouseX, mouseY, delta);
         }

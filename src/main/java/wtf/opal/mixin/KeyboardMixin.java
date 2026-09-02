@@ -20,12 +20,12 @@ import net.fabricmc.api.Environment;
 import net.minecraft.class_11908;
 import net.minecraft.class_309;
 import net.minecraft.class_310;
-import net.minecraft.class_437;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import wtf.opal.client.screen.TerentXClientMenuScreen;
+import wtf.opal.client.OpalClient;
+import wtf.opal.client.feature.module.impl.visual.ClickGUIModule;
 import wtf.opal.event.EventDispatcher;
 import wtf.opal.event.impl.press.KeyPressEvent;
 
@@ -41,14 +41,26 @@ public final class KeyboardMixin {
             if (input.comp_4795() == -1) {
                 return;
             }
+            // Right Shift: open the click GUI from anywhere; close any
+            // client menu when pressed again.  Uses the bound module so the
+            // user's chosen menu style (Liquid/Dropdown/Modern) is respected.
             if (input.comp_4795() == 344) {
                 class_310 client = class_310.method_1551();
                 if (client.field_1755 == null) {
-                    client.method_1507((class_437)new TerentXClientMenuScreen(null));
+                    try {
+                        ClickGUIModule clickGui = OpalClient.getInstance().getModuleRepository().getModule(ClickGUIModule.class);
+                        if (clickGui != null) {
+                            clickGui.setEnabled(true);
+                        }
+                    }
+                    catch (Throwable ignored) {
+                    }
                     ci.cancel();
                     return;
                 }
-                if (client.field_1755 instanceof TerentXClientMenuScreen) {
+                if (client.field_1755 instanceof wtf.opal.client.screen.vanta.VantaClickGUIScreen
+                        || client.field_1755 instanceof wtf.opal.client.screen.TerentXClientMenuScreen
+                        || client.field_1755 instanceof wtf.opal.client.screen.click.dropdown.DropdownClickGUI) {
                     client.method_1507(null);
                     ci.cancel();
                     return;

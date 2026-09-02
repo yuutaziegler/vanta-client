@@ -1,5 +1,11 @@
 /*
- * UI Editor Screen - Edit UI elements
+ * UIEditorScreen - drag & resize HUD overlay elements.
+ *
+ * Complete rewrite: a liquid-glass control window (movable, scalable via
+ * buttons), live element outlines with 8 resize handles, drag-to-move,
+ * right-click reset, H for help, ESC to save & close.  Renders ALL overlay
+ * elements (even inactive ones) so every element is editable, and polls
+ * drags every frame (the old version only moved the LAST hovered element).
  */
 package wtf.opal.client.screen.hud;
 
@@ -7,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.class_11909;
 import net.minecraft.class_11908;
+import net.minecraft.class_11909;
 import net.minecraft.class_2561;
 import net.minecraft.class_332;
 import net.minecraft.class_437;
@@ -18,310 +24,371 @@ import wtf.opal.client.feature.module.impl.visual.overlay.IOverlayElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.OverlayModule;
 import wtf.opal.client.feature.module.property.impl.ScreenPositionProperty;
 import wtf.opal.client.renderer.NVGRenderer;
+import wtf.opal.client.renderer.VantaGlass;
 import wtf.opal.client.renderer.repository.FontRepository;
 import wtf.opal.client.renderer.text.NVGTextRenderer;
 import wtf.opal.utility.misc.HoverUtility;
 
-@Environment(value=EnvType.CLIENT)
+@Environment(value = EnvType.CLIENT)
 public class UIEditorScreen extends class_437 {
-    
-    private static final NVGTextRenderer BOLD_FONT = FontRepository.getFont("inter-bold");
-    private static final NVGTextRenderer MED_FONT = FontRepository.getFont("inter-medium");
-    
+    private static final int ACCENT = 0xFF4C8DFF;
+    private static final int TEXT = 0xFFF4F7FF;
+    private static final int TEXT_DIM = 0xFF9AA7C2;
+
+    private static float winX = -1.0f;
+    private static float winY = -1.0f;
+    private static float editorScale = 1.0f;
+
+    private final List<HandleHit> handleHits = new ArrayList<>();
+
     private ScreenPositionProperty draggingProperty;
+    private ScreenPositionProperty resizingProperty;
     private ResizeHandle activeHandle;
-    private float dragStartX;
-    private float dragStartY;
-    private float initialWidth;
-    private float initialHeight;
-    
+    private float dragOffsetX;
+    private float dragOffsetY;
+    private float resizeStartX;
+    private float resizeStartY;
+    private float resizeStartW;
+    private float resizeStartH;
+    private float resizeStartRelX;
+    private float resizeStartRelY;
+
+    private boolean draggingWindow;
+    private float winDragOffX;
+    private float winDragOffY;
+
     private boolean showHelp = true;
-    
+
     public UIEditorScreen() {
-        super(class_2561.method_30163("UI Editor"));
+        super(class_2561.method_43470("Vanta HUD Editor"));
+    }
+
+    private float winW() {
+        return 230.0f * editorScale;
+    }
+
+    private float winH() {
+        return 74.0f * editorScale;
+    }
+
+    private List<IOverlayElement> allElements() {
+        OverlayModule overlay = OpalClient.getInstance().getModuleRepository().getModule(OverlayModule.class);
+        if (overlay == null) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(overlay.getElements());
     }
 
     @Override
     public void method_25394(class_332 context, int mouseX, int mouseY, float delta) {
-        // Background
-        context.method_25294(0, 0, this.field_22789, this.field_22790, 1711868690);
-        
-        boolean frameStarted = NVGRenderer.beginFrame();
-        
-        // Banner
-        float bannerW = 400.0f;
-        float bannerH = 50.0f;
-        float bannerX = ((float)this.field_22789 - bannerW) / 2.0f;
-        float bannerY = 16.0f;
-        
-        NVGRenderer.roundedRect(bannerX, bannerY, bannerW, bannerH, 8.0f, -586609643);
-        BOLD_FONT.drawString("UI Editor", bannerX + 15.0f, bannerY + 12.0f, 10.0f, -16718337);
-        MED_FONT.drawString("Drag to move \u2022 Corners to resize \u2022 ESC to save", bannerX + 15.0f, bannerY + 30.0f, 7.0f, -7035976);
-        
-        // Help button
-        float helpBtnW = 50.0f;
-        float helpBtnH = 18.0f;
-        float helpBtnX = bannerX + bannerW - helpBtnW - 10.0f;
-        float helpBtnY = bannerY + 10.0f;
-        boolean helpHover = HoverUtility.isHovering(helpBtnX, helpBtnY, helpBtnW, helpBtnH, mouseX, mouseY);
-        NVGRenderer.roundedRect(helpBtnX, helpBtnY, helpBtnW, helpBtnH, 4.0f, helpHover ? 1140850687 : 572665343);
-        MED_FONT.drawString("Help", helpBtnX + (helpBtnW - MED_FONT.getStringWidth("Help", 6.5f)) / 2.0f, helpBtnY + 11.0f, 6.5f, -1);
-        
-        // Help overlay
-        if (this.showHelp) {
-            float helpW = 300.0f;
-            float helpH = 120.0f;
-            float helpX = bannerX + 50.0f;
-            float helpY = bannerY + bannerH + 10.0f;
-            
-            NVGRenderer.roundedRect(helpX, helpY, helpW, helpH, 6.0f, -2147483647);
-            BOLD_FONT.drawString("Controls:", helpX + 10.0f, helpY + 12.0f, 8.0f, -1);
-            MED_FONT.drawString("Left Click + Drag - Move element", helpX + 10.0f, helpY + 30.0f, 7.0f, -4473925);
-            MED_FONT.drawString("Drag corners - Resize element", helpX + 10.0f, helpY + 45.0f, 7.0f, -4473925);
-            MED_FONT.drawString("Right Click - Reset position", helpX + 10.0f, helpY + 60.0f, 7.0f, -4473925);
-            MED_FONT.drawString("H - Toggle this help", helpX + 10.0f, helpY + 75.0f, 7.0f, -4473925);
-            MED_FONT.drawString("ESC - Save and exit", helpX + 10.0f, helpY + 90.0f, 7.0f, -4473925);
+        float screenW = Constants.mc.method_22683().method_4486();
+        float screenH = Constants.mc.method_22683().method_4502();
+        float s = editorScale;
+
+        if (this.draggingWindow) {
+            winX = mouseX - this.winDragOffX;
+            winY = mouseY - this.winDragOffY;
         }
-        
-        // Render all overlay elements
-        OverlayModule overlayModule = OpalClient.getInstance().getModuleRepository().getModule(OverlayModule.class);
-        if (overlayModule != null) {
-            for (IOverlayElement element : overlayModule.getElements()) {
-                ScreenPositionProperty prop = element.getPositionProperty();
-                if (prop == null || !element.isActive()) continue;
-                
-                float x = prop.getScaledX();
-                float y = prop.getScaledY();
-                float width = Math.max(20.0f, prop.getWidth());
-                float height = Math.max(16.0f, prop.getHeight());
-                
-                // Handle dragging
-                if (prop.isDragging()) {
-                    prop.setRelativeX((float)mouseX - prop.getStartX());
-                    prop.setRelativeY((float)mouseY - prop.getStartY());
-                }
-                
-                // Handle resizing
-                if (this.activeHandle != null) {
-                    handleResize(prop, mouseX, mouseY);
-                }
-                
-                // Check if hovering
-                boolean isHover = HoverUtility.isHovering(x, y, width, height, mouseX, mouseY);
-                
-                // Draw element bounds
-                if (isHover || prop.isDragging() || this.activeHandle != null) {
-                    NVGRenderer.roundedRect(x - 3.0f, y - 3.0f, width + 6.0f, height + 6.0f, 5.0f, prop.isDragging() ? 1073800703 : 536929791);
-                    NVGRenderer.roundedRectOutline(x - 3.0f, y - 3.0f, width + 6.0f, height + 6.0f, 5.0f, 2.0f, -16718337);
-                    
-                    // Draw resize handles
-                    drawResizeHandles(x, y, width, height, isHover);
-                    
-                    // Draw element name
-                    String name = prop.getId();
-                    float nw = MED_FONT.getStringWidth(name, 6.5f) + 10.0f;
-                    NVGRenderer.roundedRect(x + width / 2.0f - nw / 2.0f, y - 16.0f, nw, 12.0f, 3.0f, -267842798);
-                    MED_FONT.drawString(name, x + width / 2.0f - MED_FONT.getStringWidth(name, 6.5f) / 2.0f, y - 7.0f, 6.5f, -16718337);
-                } else {
-                    NVGRenderer.roundedRectOutline(x - 2.0f, y - 2.0f, width + 4.0f, height + 4.0f, 4.0f, 1.5f, 855696895);
-                }
+        if (winX < 0.0f || winY < 0.0f) {
+            winX = 8.0f;
+            winY = 8.0f;
+        }
+        winX = Math.max(0.0f, Math.min(screenW - winW(), winX));
+        winY = Math.max(0.0f, Math.min(screenH - winH(), winY));
+
+        NVGTextRenderer bold = FontRepository.getFont("inter-bold");
+        NVGTextRenderer med = FontRepository.getFont("inter-medium");
+
+        boolean frameStarted = NVGRenderer.beginFrame();
+
+        // ---- dim the world slightly so outlines are visible (light, not black)
+        context.method_25294(0, 0, this.field_22789, this.field_22790, 0x66000000);
+
+        // ---- per-frame drag polling
+        for (IOverlayElement element : this.allElements()) {
+            ScreenPositionProperty prop = element.getPositionProperty();
+            if (prop == null) {
+                continue;
+            }
+            if (prop.isDragging()) {
+                float nx = mouseX - this.dragOffsetX;
+                float ny = mouseY - this.dragOffsetY;
+                nx = Math.max(0.0f, Math.min(screenW - prop.getWidth(), nx));
+                ny = Math.max(0.0f, Math.min(screenH - prop.getHeight(), ny));
+                prop.setRelativeX(nx);
+                prop.setRelativeY(ny);
+            }
+            if (this.resizingProperty == prop && this.activeHandle != null) {
+                this.applyResize(prop, mouseX, mouseY, screenW, screenH);
             }
         }
-        
+
+        // ---- render elements + outlines
+        this.handleHits.clear();
+        for (IOverlayElement element : this.allElements()) {
+            ScreenPositionProperty prop = element.getPositionProperty();
+            if (prop == null) {
+                continue;
+            }
+            float x = prop.getScaledX();
+            float y = prop.getScaledY();
+            float w = Math.max(16.0f, prop.getWidth());
+            float h = Math.max(12.0f, prop.getHeight());
+
+            boolean hover = HoverUtility.isHovering(x - 4.0f, y - 4.0f, w + 8.0f, h + 8.0f, mouseX, mouseY);
+            boolean active = prop.isDragging() || this.resizingProperty == prop;
+
+            // outline
+            NVGRenderer.roundedRect(x - 3.0f, y - 3.0f, w + 6.0f, h + 6.0f, 4.0f, active ? 0x554C8DFF : (hover ? 0x334C8DFF : 0x22FFFFFF));
+            NVGRenderer.roundedRectOutline(x - 3.0f, y - 3.0f, w + 6.0f, h + 6.0f, 4.0f, 1.2f, active ? ACCENT : 0x88FFFFFF);
+
+            if (hover || active) {
+                this.drawHandles(x, y, w, h);
+                String name = prop.getName();
+                float nw = med.getStringWidth(name, 6.5f) + 10.0f;
+                float labelY = Math.max(2.0f, y - 18.0f);
+                NVGRenderer.roundedRect(x + w / 2.0f - nw / 2.0f, labelY, nw, 12.0f, 3.0f, 0xE616224E);
+                med.drawString(name, x + w / 2.0f - med.getStringWidth(name, 6.5f) / 2.0f, labelY + 3.5f, 6.5f, TEXT);
+            }
+        }
+
+        // ---- control window
+        VantaGlass.panel(winX, winY, winW(), winH(), 10.0f * s, 0.16f);
+        bold.drawString("HUD Editor", winX + 12.0f * s, winY + 10.0f * s, 9.5f * s, TEXT);
+        med.drawString("Drag to move \u2022 corners resize \u2022 right-click reset", winX + 12.0f * s, winY + 26.0f * s, 6.5f * s, TEXT_DIM);
+        med.drawString("H: help   \u2022   ESC: save & exit", winX + 12.0f * s, winY + 38.0f * s, 6.5f * s, TEXT_DIM);
+
+        float by = winY + 52.0f * s;
+        this.controlButton(winX + 12.0f * s, by, 22.0f * s, 14.0f * s, "-", mouseX, mouseY, med, s);
+        this.controlButton(winX + 38.0f * s, by, 22.0f * s, 14.0f * s, "+", mouseX, mouseY, med, s);
+        this.controlButton(winX + winW() - 70.0f * s, by, 58.0f * s, 14.0f * s, this.showHelp ? "Hide help" : "Show help", mouseX, mouseY, med, s);
+
+        if (this.showHelp) {
+            float hx = winX;
+            float hy = winY + winH() + 6.0f;
+            float hw = winW();
+            float hh = 78.0f * s;
+            VantaGlass.panel(hx, hy, hw, hh, 8.0f * s, 0.18f);
+            med.drawString("Left-click + drag:  move element", hx + 10.0f * s, hy + 10.0f * s, 6.5f * s, TEXT);
+            med.drawString("Drag white handles:  resize element", hx + 10.0f * s, hy + 24.0f * s, 6.5f * s, TEXT);
+            med.drawString("Right-click element:  reset position", hx + 10.0f * s, hy + 38.0f * s, 6.5f * s, TEXT);
+            med.drawString("H:  toggle this panel", hx + 10.0f * s, hy + 52.0f * s, 6.5f * s, TEXT);
+            med.drawString("ESC:  save and exit", hx + 10.0f * s, hy + 66.0f * s, 6.5f * s, TEXT);
+        }
+
         if (frameStarted) {
             NVGRenderer.endFrameAndReset(true);
         }
     }
 
-    private void drawResizeHandles(float x, float y, float width, float height, boolean isHover) {
-        float handleSize = 8.0f;
-        
-        // Corner handles
-        drawHandle(x, y, handleSize, handleSize); // Top-left
-        drawHandle(x + width - handleSize, y, handleSize, handleSize); // Top-right
-        drawHandle(x, y + height - handleSize, handleSize, handleSize); // Bottom-left
-        drawHandle(x + width - handleSize, y + height - handleSize, handleSize, handleSize); // Bottom-right
-        
-        // Edge handles
-        drawHandle(x + width / 2.0f - handleSize / 2.0f, y - handleSize / 2.0f, handleSize, handleSize); // Top
-        drawHandle(x + width / 2.0f - handleSize / 2.0f, y + height - handleSize / 2.0f, handleSize, handleSize); // Bottom
-        drawHandle(x - handleSize / 2.0f, y + height / 2.0f - handleSize / 2.0f, handleSize, handleSize); // Left
-        drawHandle(x + width - handleSize / 2.0f, y + height / 2.0f - handleSize / 2.0f, handleSize, handleSize); // Right
+    private void drawHandles(float x, float y, float w, float height) {
+        float hs = 7.0f;
+        this.putHandle(ResizeHandle.TOP_LEFT, x - hs / 2.0f, y - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.TOP_RIGHT, x + w - hs / 2.0f, y - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.BOTTOM_LEFT, x - hs / 2.0f, y + height - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.BOTTOM_RIGHT, x + w - hs / 2.0f, y + height - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.TOP, x + w / 2.0f - hs / 2.0f, y - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.BOTTOM, x + w / 2.0f - hs / 2.0f, y + height - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.LEFT, x - hs / 2.0f, y + height / 2.0f - hs / 2.0f, hs, hs);
+        this.putHandle(ResizeHandle.RIGHT, x + w - hs / 2.0f, y + height / 2.0f - hs / 2.0f, hs, hs);
     }
 
-    private void drawHandle(float x, float y, float width, float height) {
-        NVGRenderer.roundedRect(x, y, width, height, 2.0f, -1);
-        NVGRenderer.roundedRectOutline(x, y, width, height, 2.0f, 1.0f, -16718337);
+    private void putHandle(ResizeHandle handle, float x, float y, float w, float h) {
+        this.handleHits.add(new HandleHit(handle, x, y, w, h));
+        NVGRenderer.roundedRect(x, y, w, h, 2.0f, 0xF2FFFFFF);
+        NVGRenderer.roundedRectOutline(x, y, w, h, 2.0f, 1.0f, ACCENT);
     }
 
-    private ResizeHandle getHandleAt(float elementX, float elementY, float width, float height, int mouseX, int mouseY) {
-        float handleSize = 10.0f;
-        
-        // Corners
-        if (HoverUtility.isHovering(elementX - handleSize / 2.0f, elementY - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.TOP_LEFT;
+    private ResizeHandle handleAt(double mx, double my) {
+        for (int i = this.handleHits.size() - 1; i >= 0; --i) {
+            HandleHit hit = this.handleHits.get(i);
+            if (HoverUtility.isHovering(hit.x, hit.y, hit.w, hit.h, mx, my)) {
+                return hit.handle;
+            }
         }
-        if (HoverUtility.isHovering(elementX + width - handleSize / 2.0f, elementY - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.TOP_RIGHT;
-        }
-        if (HoverUtility.isHovering(elementX - handleSize / 2.0f, elementY + height - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.BOTTOM_LEFT;
-        }
-        if (HoverUtility.isHovering(elementX + width - handleSize / 2.0f, elementY + height - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.BOTTOM_RIGHT;
-        }
-        
-        // Edges
-        if (HoverUtility.isHovering(elementX + width / 2.0f - handleSize / 2.0f, elementY - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.TOP;
-        }
-        if (HoverUtility.isHovering(elementX + width / 2.0f - handleSize / 2.0f, elementY + height - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.BOTTOM;
-        }
-        if (HoverUtility.isHovering(elementX - handleSize / 2.0f, elementY + height / 2.0f - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.LEFT;
-        }
-        if (HoverUtility.isHovering(elementX + width - handleSize / 2.0f, elementY + height / 2.0f - handleSize / 2.0f, handleSize, handleSize, mouseX, mouseY)) {
-            return ResizeHandle.RIGHT;
-        }
-        
         return null;
     }
 
-    private void handleResize(ScreenPositionProperty prop, int mouseX, int mouseY) {
-        float dx = mouseX - this.dragStartX;
-        float dy = mouseY - this.dragStartY;
-        
+    private void controlButton(float x, float y, float w, float h, String label, int mouseX, int mouseY, NVGTextRenderer med, float s) {
+        boolean hover = HoverUtility.isHovering(x, y, w, h, mouseX, mouseY);
+        NVGRenderer.roundedRect(x, y, w, h, 4.0f * s, hover ? 0x554C8DFF : 0x28FFFFFF);
+        float tw = med.getStringWidth(label, 6.5f * s);
+        med.drawString(label, x + (w - tw) / 2.0f, y + h / 2.0f - 4.0f * s, 6.5f * s, TEXT);
+    }
+
+    private void applyResize(ScreenPositionProperty prop, int mouseX, int mouseY, float screenW, float screenH) {
+        float dx = mouseX - this.resizeStartX;
+        float dy = mouseY - this.resizeStartY;
+        float newW = this.resizeStartW;
+        float newH = this.resizeStartH;
+        float newRelX = this.resizeStartRelX;
+        float newRelY = this.resizeStartRelY;
         switch (this.activeHandle) {
-            case TOP_LEFT:
-                prop.setRelativeX(prop.getRelativeX() + dx / Constants.mc.method_22683().method_4486());
-                prop.setRelativeY(prop.getRelativeY() + dy / Constants.mc.method_22683().method_4502());
-                prop.setWidth(Math.max(20.0f, this.initialWidth - dx));
-                prop.setHeight(Math.max(16.0f, this.initialHeight - dy));
-                break;
-            case TOP_RIGHT:
-                prop.setRelativeY(prop.getRelativeY() + dy / Constants.mc.method_22683().method_4502());
-                prop.setWidth(Math.max(20.0f, this.initialWidth + dx));
-                prop.setHeight(Math.max(16.0f, this.initialHeight - dy));
+            case BOTTOM_RIGHT:
+                newW = this.resizeStartW + dx;
+                newH = this.resizeStartH + dy;
                 break;
             case BOTTOM_LEFT:
-                prop.setRelativeX(prop.getRelativeX() + dx / Constants.mc.method_22683().method_4486());
-                prop.setWidth(Math.max(20.0f, this.initialWidth - dx));
-                prop.setHeight(Math.max(16.0f, this.initialHeight + dy));
+                newW = this.resizeStartW - dx;
+                newH = this.resizeStartH + dy;
+                newRelX = this.resizeStartRelX + dx / screenW;
                 break;
-            case BOTTOM_RIGHT:
-                prop.setWidth(Math.max(20.0f, this.initialWidth + dx));
-                prop.setHeight(Math.max(16.0f, this.initialHeight + dy));
+            case TOP_RIGHT:
+                newW = this.resizeStartW + dx;
+                newH = this.resizeStartH - dy;
+                newRelY = this.resizeStartRelY + dy / screenH;
                 break;
-            case TOP:
-                prop.setRelativeY(prop.getRelativeY() + dy / Constants.mc.method_22683().method_4502());
-                prop.setHeight(Math.max(16.0f, this.initialHeight - dy));
-                break;
-            case BOTTOM:
-                prop.setHeight(Math.max(16.0f, this.initialHeight + dy));
-                break;
-            case LEFT:
-                prop.setRelativeX(prop.getRelativeX() + dx / Constants.mc.method_22683().method_4486());
-                prop.setWidth(Math.max(20.0f, this.initialWidth - dx));
+            case TOP_LEFT:
+                newW = this.resizeStartW - dx;
+                newH = this.resizeStartH - dy;
+                newRelX = this.resizeStartRelX + dx / screenW;
+                newRelY = this.resizeStartRelY + dy / screenH;
                 break;
             case RIGHT:
-                prop.setWidth(Math.max(20.0f, this.initialWidth + dx));
+                newW = this.resizeStartW + dx;
+                break;
+            case LEFT:
+                newW = this.resizeStartW - dx;
+                newRelX = this.resizeStartRelX + dx / screenW;
+                break;
+            case BOTTOM:
+                newH = this.resizeStartH + dy;
+                break;
+            case TOP:
+                newH = this.resizeStartH - dy;
+                newRelY = this.resizeStartRelY + dy / screenH;
                 break;
         }
-        
-        this.dragStartX = mouseX;
-        this.dragStartY = mouseY;
+        newW = Math.max(20.0f, newW);
+        newH = Math.max(14.0f, newH);
+        newRelX = Math.max(0.0f, Math.min(1.0f - newW / screenW, newRelX));
+        newRelY = Math.max(0.0f, Math.min(1.0f - newH / screenH, newRelY));
+        prop._setRelativeX(newRelX);
+        prop._setRelativeY(newRelY);
+        prop.setWidth(newW);
+        prop.setHeight(newH);
     }
 
     @Override
     public boolean method_25402(class_11909 click, boolean doubled) {
-        float bannerW = 400.0f;
-        float bannerH = 50.0f;
-        float bannerX = ((float)this.field_22789 - bannerW) / 2.0f;
-        float bannerY = 16.0f;
-        
-        // Help button
-        float helpBtnW = 50.0f;
-        float helpBtnH = 18.0f;
-        float helpBtnX = bannerX + bannerW - helpBtnW - 10.0f;
-        float helpBtnY = bannerY + 10.0f;
-        
-        if (click.comp_4798() >= (double)helpBtnX && click.comp_4798() <= (double)(helpBtnX + helpBtnW) && click.comp_4799() >= (double)helpBtnY && click.comp_4799() <= (double)(helpBtnY + helpBtnH)) {
+        double mx = click.comp_4798();
+        double my = click.comp_4799();
+        int button = click.method_74245();
+        float s = editorScale;
+
+        // control window buttons
+        float by = winY + 52.0f * s;
+        if (button == 0 && HoverUtility.isHovering(winX + 12.0f * s, by, 22.0f * s, 14.0f * s, mx, my)) {
+            editorScale = Math.max(0.7f, editorScale - 0.1f);
+            return true;
+        }
+        if (button == 0 && HoverUtility.isHovering(winX + 38.0f * s, by, 22.0f * s, 14.0f * s, mx, my)) {
+            editorScale = Math.min(1.6f, editorScale + 0.1f);
+            return true;
+        }
+        if (button == 0 && HoverUtility.isHovering(winX + winW() - 70.0f * s, by, 58.0f * s, 14.0f * s, mx, my)) {
             this.showHelp = !this.showHelp;
             return true;
         }
-        
-        OverlayModule overlayModule = OpalClient.getInstance().getModuleRepository().getModule(OverlayModule.class);
-        if (overlayModule != null && click.method_74245() == 0) {
-            for (IOverlayElement element : overlayModule.getElements()) {
-                ScreenPositionProperty prop = element.getPositionProperty();
-                if (prop == null || !element.isActive()) continue;
-                
-                float x = prop.getScaledX();
-                float y = prop.getScaledY();
-                float width = Math.max(20.0f, prop.getWidth());
-                float height = Math.max(16.0f, prop.getHeight());
-                
-                // Check for resize handle first
-                ResizeHandle handle = getHandleAt(x, y, width, height, (int)click.comp_4798(), (int)click.comp_4799());
-                if (handle != null) {
+
+        // drag window by its title area
+        if (button == 0 && HoverUtility.isHovering(winX, winY, winW(), 24.0f * s, mx, my)) {
+            this.draggingWindow = true;
+            this.winDragOffX = (float) mx - winX;
+            this.winDragOffY = (float) my - winY;
+            return true;
+        }
+
+        // elements: check topmost (last drawn hovered) first
+        List<IOverlayElement> elements = this.allElements();
+        for (int i = elements.size() - 1; i >= 0; --i) {
+            ScreenPositionProperty prop = elements.get(i).getPositionProperty();
+            if (prop == null) {
+                continue;
+            }
+            float x = prop.getScaledX();
+            float y = prop.getScaledY();
+            float w = Math.max(16.0f, prop.getWidth());
+            float h = Math.max(12.0f, prop.getHeight());
+
+            if (button == 0) {
+                ResizeHandle handle = this.handleAt(mx, my);
+                if (handle != null && HoverUtility.isHovering(x - 6.0f, y - 6.0f, w + 12.0f, h + 12.0f, mx, my)) {
+                    this.resizingProperty = prop;
                     this.activeHandle = handle;
-                    this.draggingProperty = prop;
-                    this.dragStartX = (float)click.comp_4798();
-                    this.dragStartY = (float)click.comp_4799();
-                    this.initialWidth = prop.getWidth();
-                    this.initialHeight = prop.getHeight();
+                    this.resizeStartX = (float) mx;
+                    this.resizeStartY = (float) my;
+                    this.resizeStartW = w;
+                    this.resizeStartH = h;
+                    this.resizeStartRelX = prop.getRelativeX();
+                    this.resizeStartRelY = prop.getRelativeY();
                     return true;
                 }
-                
-                // Check for element drag
-                if (HoverUtility.isHovering(x, y, width, height, (int)click.comp_4798(), (int)click.comp_4799())) {
+                if (HoverUtility.isHovering(x, y, w, h, mx, my)) {
                     prop.setDragging(true);
-                    prop.setStartX((float)click.comp_4798() - x);
-                    prop.setStartY((float)click.comp_4799() - y);
                     this.draggingProperty = prop;
+                    this.dragOffsetX = (float) mx - x;
+                    this.dragOffsetY = (float) my - y;
                     return true;
                 }
+            } else if (button == 1 && HoverUtility.isHovering(x, y, w, h, mx, my)) {
+                prop._setRelativeX(0.5f);
+                prop._setRelativeY(0.5f);
+                return true;
             }
         }
-        
-        return super.method_25402(click, doubled);
+        return true;
     }
 
     @Override
     public boolean method_25406(class_11909 click) {
-        if (click.method_74245() == 0 && this.draggingProperty != null) {
+        if (this.draggingProperty != null) {
             this.draggingProperty.snapToGrid();
             this.draggingProperty.setDragging(false);
             this.draggingProperty = null;
-            this.activeHandle = null;
-        } else if (click.method_74245() == 1 && this.draggingProperty != null) {
-            // Right click - reset position
-            this.draggingProperty._setRelativeX(0.5f);
-            this.draggingProperty._setRelativeY(0.5f);
-            this.draggingProperty.setDragging(false);
-            this.draggingProperty = null;
-            this.activeHandle = null;
         }
-        return super.method_25406(click);
+        this.resizingProperty = null;
+        this.activeHandle = null;
+        this.draggingWindow = false;
+        return true;
     }
 
     @Override
     public boolean method_25404(class_11908 keyInput) {
-        if (keyInput.comp_4795() == 72) { // H key
+        if (keyInput.comp_4795() == 72) { // H
             this.showHelp = !this.showHelp;
             return true;
         }
-        return super.method_25404(keyInput);
+        if (keyInput.comp_4795() == 256 || keyInput.comp_4795() == 344) { // ESC / RShift
+            Constants.mc.method_1507(null);
+            return true;
+        }
+        return true;
     }
 
     @Override
     public boolean method_25421() {
         return false;
     }
-    
+
     private enum ResizeHandle {
         TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT,
         TOP, BOTTOM, LEFT, RIGHT
+    }
+
+    private static final class HandleHit {
+        final ResizeHandle handle;
+        final float x;
+        final float y;
+        final float w;
+        final float h;
+
+        HandleHit(ResizeHandle handle, float x, float y, float w, float h) {
+            this.handle = handle;
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+        }
     }
 }

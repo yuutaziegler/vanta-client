@@ -35,6 +35,7 @@
     "EntityVelocityUpdateS2CPacketAccessor",
     "EquipmentRendererMixin",
     "GameRendererMixin",
+    "HandledScreenAccessor",
     "HandledScreenMixin",
     "HeldItemFeatureRendererMixin",
     "HeldItemRendererMixin",

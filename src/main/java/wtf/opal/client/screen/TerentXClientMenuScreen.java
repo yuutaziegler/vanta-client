@@ -32,6 +32,7 @@ import net.minecraft.class_437;
 import org.lwjgl.glfw.GLFW;
 import wtf.opal.client.Constants;
 import wtf.opal.client.OpalClient;
+import wtf.opal.client.feature.module.impl.visual.HudSettingsModule;
 import wtf.opal.client.binding.type.InputType;
 import wtf.opal.client.feature.module.Module;
 import wtf.opal.client.feature.module.ModuleCategory;
@@ -90,6 +91,7 @@ extends class_437 {
     }
 
     private void renderLiquidGlassBackground(float winX, float winY, float winW, float winH, float menuScale, int fadeAlpha, class_332 context) {
+        float sidebarWidth = 140.0f * menuScale;
         HudSettingsModule hudSettings = OpalClient.getInstance().getModuleRepository().getModule(HudSettingsModule.class);
         if (hudSettings == null || !hudSettings.isEnabled()) {
             // Fallback to original solid background when HUD settings are disabled
@@ -285,7 +287,7 @@ extends class_437 {
                 float x = startX + (float)col * (cardW + spacing);
                 float y = gridY + (float)row * (cardH + spacing) - this.smoothScrollOffset;
                 if (y + cardH < gridY - 20.0f || y > clipY + 20.0f) continue;
-                boolean bl = isHovered = (float)mouseX >= x && (float)mouseX <= x + cardW && (float)mouseY >= y && (float)mouseY <= y + cardH;
+                isHovered = (float)mouseX >= x && (float)mouseX <= x + cardW && (float)mouseY >= y && (float)mouseY <= y + cardH;
                 if (isHovered && (float)mouseY >= gridY && (float)mouseY <= clipY) {
                     this.hoveredTooltip = mod.getDescription();
                 }
@@ -473,7 +475,7 @@ extends class_437 {
     }
 
     private String getModuleKeyName(Module module) {
-        Object name;
+        String name;
         Optional<Pair<Integer, InputType>> bind = OpalClient.getInstance().getBindRepository().getBindingService().getKeyFromBindable(module);
         if (bind.isPresent() && (name = OpalClient.getInstance().getBindRepository().getNameFromInteger((Integer)bind.get().first)) != null) {
             if (((String)name).startsWith("KEY_")) {
@@ -557,9 +559,8 @@ extends class_437 {
                 float rowH;
                 float f2 = rowH = prop instanceof ColorProperty ? 52.0f * menuScale : 28.0f * menuScale;
                 if (mouseX >= (double)x && mouseX <= (double)(x + w) && mouseY >= (double)setY && mouseY <= (double)(setY + rowH)) {
-                    if (prop instanceof BooleanProperty) {
-                        BooleanProperty bp;
-                        bp.setValue((bp = (BooleanProperty)prop).getValue() == false);
+                    if (prop instanceof BooleanProperty bp) {
+                        bp.setValue(!bp.getValue());
                     } else if (prop instanceof ModeProperty) {
                         ModeProperty mp = (ModeProperty)prop;
                         mp.cycle(true);

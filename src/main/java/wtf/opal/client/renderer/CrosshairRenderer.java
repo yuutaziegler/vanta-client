@@ -23,15 +23,15 @@ public class CrosshairRenderer {
         float centerX = (float)Constants.mc.method_22683().method_4486() / 2.0f;
         float centerY = (float)Constants.mc.method_22683().method_4502() / 2.0f;
         
-        float size = module.getSize();
-        float thickness = module.getThickness();
-        float gap = module.getGap();
-        float dotSize = module.getDotSize();
+        float size = (float)module.getSize();
+        float thickness = (float)module.getThickness();
+        float gap = (float)module.getGap();
+        float dotSize = (float)module.getDotSize();
         
         int color = module.getColor();
         
         // Apply shake reduction
-        float shakeReduction = module.getShakeReduction();
+        float shakeReduction = (float)module.getShakeReduction();
         if (shakeReduction > 0) {
             // Reduce crosshair shake based on setting
         }
@@ -71,7 +71,6 @@ public class CrosshairRenderer {
                 break;
                 
             case CUSTOM:
-                // Custom crosshair could be loaded from config
                 renderCross(centerX, centerY, size, thickness, gap, color);
                 break;
         }
@@ -79,7 +78,7 @@ public class CrosshairRenderer {
         // Draw outline if enabled
         if (module.isOutline()) {
             int outlineColor = 0xFF000000 | (color & 0x00FFFFFF);
-            float outlineThickness = module.getOutlineThickness();
+            float outlineThickness = (float)module.getOutlineThickness();
             
             // Render outline version with offset
             switch (module.getStyle()) {
@@ -100,22 +99,33 @@ public class CrosshairRenderer {
     private static void renderCross(float cx, float cy, float size, float thickness, float gap, int color) {
         float halfSize = size / 2.0f;
         float halfThick = thickness / 2.0f;
-        float halfGap = gap / 2.0f;
         
         // Top
-        NVGRenderer.roundedRect(cx - halfThick, cy - halfSize - halfGap, thickness, halfSize, halfThick, color);
+        NVGRenderer.rect(cx - halfThick, cy - halfSize - gap, thickness, halfSize, color);
         // Bottom
-        NVGRenderer.roundedRect(cx - halfThick, cy + halfGap, thickness, halfSize, halfThick, color);
+        NVGRenderer.rect(cx - halfThick, cy + gap, thickness, halfSize, color);
         // Left
-        NVGRenderer.roundedRect(cx - halfSize - halfGap, cy - halfThick, halfSize, thickness, halfThick, color);
+        NVGRenderer.rect(cx - halfSize - gap, cy - halfThick, halfSize, thickness, color);
         // Right
-        NVGRenderer.roundedRect(cx + halfGap, cy - halfThick, halfSize, thickness, halfThick, color);
+        NVGRenderer.rect(cx + gap, cy - halfThick, halfSize, thickness, color);
     }
     
     private static void renderCrossOutline(float cx, float cy, float size, float thickness, float gap, int color, float outlineThickness) {
-        // Simplified outline - just draw the same cross slightly larger/outlined
-        float offset = outlineThickness;
-        renderCross(cx, cy, size + offset * 2, thickness + offset * 2, gap, color);
+        float halfSize = size / 2.0f;
+        float halfThick = thickness / 2.0f;
+        
+        // Top outline
+        NVGRenderer.rectOutline(cx - halfThick - outlineThickness, cy - halfSize - gap - outlineThickness, 
+                thickness + outlineThickness * 2, halfSize + outlineThickness * 2, outlineThickness, color);
+        // Bottom outline
+        NVGRenderer.rectOutline(cx - halfThick - outlineThickness, cy + gap - outlineThickness, 
+                thickness + outlineThickness * 2, halfSize + outlineThickness * 2, outlineThickness, color);
+        // Left outline
+        NVGRenderer.rectOutline(cx - halfSize - gap - outlineThickness, cy - halfThick - outlineThickness, 
+                halfSize + outlineThickness * 2, thickness + outlineThickness * 2, outlineThickness, color);
+        // Right outline
+        NVGRenderer.rectOutline(cx + gap - outlineThickness, cy - halfThick - outlineThickness, 
+                halfSize + outlineThickness * 2, thickness + outlineThickness * 2, outlineThickness, color);
     }
     
     private static void renderDot(float cx, float cy, float size, int color) {
@@ -129,13 +139,13 @@ public class CrosshairRenderer {
     
     private static void renderCircle(float cx, float cy, float size, float thickness, float gap, int color) {
         float radius = size / 2.0f;
-        NVGRenderer.roundedRect(cx - radius - gap, cy - radius - gap, radius * 2, radius * 2, radius, thickness, color);
+        NVGRenderer.roundedRectOutline(cx - radius - gap, cy - radius - gap, radius * 2, radius * 2, radius, thickness, color);
     }
     
     private static void renderSquare(float cx, float cy, float size, float thickness, float gap, int color) {
         float halfSize = size / 2.0f;
         float halfGap = gap / 2.0f;
-        NVGRenderer.roundedRect(cx - halfSize - halfGap, cy - halfSize - halfGap, size, size, 2.0f, thickness, color);
+        NVGRenderer.roundedRectOutline(cx - halfSize - halfGap, cy - halfSize - halfGap, size, size, 2.0f, thickness, color);
     }
     
     private static void renderPlus(float cx, float cy, float size, float thickness, float gap, int color) {
@@ -143,40 +153,28 @@ public class CrosshairRenderer {
         float halfThick = thickness / 2.0f;
         float halfGap = gap / 2.0f;
         
-        // Horizontal line
-        NVGRenderer.roundedRect(cx - halfSize - halfGap, cy - halfThick, size + gap, thickness, halfThick, color);
-        // Vertical line
-        NVGRenderer.roundedRect(cx - halfThick, cy - halfSize - halfGap, thickness, size + gap, halfThick, color);
+        NVGRenderer.rect(cx - halfThick, cy - halfSize - halfGap, thickness, size, color);
+        NVGRenderer.rect(cx - halfSize - halfGap, cy - halfThick, size, thickness, color);
     }
     
     private static void renderMinus(float cx, float cy, float size, float thickness, float gap, int color) {
         float halfSize = size / 2.0f;
         float halfThick = thickness / 2.0f;
-        float halfGap = gap / 2.0f;
-        
-        // Horizontal line only
-        NVGRenderer.roundedRect(cx - halfSize - halfGap, cy - halfThick, size + gap, thickness, halfThick, color);
+        NVGRenderer.rect(cx - halfSize - gap, cy - halfThick, size, thickness, color);
     }
     
     private static void renderSwastika(float cx, float cy, float size, float thickness, float gap, int color) {
         float halfSize = size / 2.0f;
         float halfThick = thickness / 2.0f;
-        float halfGap = gap / 2.0f;
-        float armWidth = thickness;
-        float armLength = size;
-        float bendSize = thickness;
         
         // Center cross
-        NVGRenderer.rect(cx - halfThick, cy - halfSize - halfGap, thickness, size + gap, color);
-        NVGRenderer.rect(cx - halfSize - halfGap, cy - halfThick, size + gap, thickness, color);
+        NVGRenderer.rect(cx - halfThick, cy - halfSize, thickness, size * 2, color);
+        NVGRenderer.rect(cx - halfSize, cy - halfThick, size * 2, thickness, color);
         
-        // Top-left bend
-        NVGRenderer.rect(cx - armLength - halfGap, cy - halfThick - bendSize, bendSize, bendSize, color);
-        // Top-right bend
-        NVGRenderer.rect(cx + armLength - bendSize + halfGap, cy - halfThick - bendSize, bendSize, bendSize, color);
-        // Bottom-left bend
-        NVGRenderer.rect(cx - armLength - halfGap, cy + halfThick + armLength - bendSize, bendSize, bendSize, color);
-        // Bottom-right bend
-        NVGRenderer.rect(cx + armLength - bendSize + halfGap, cy + halfThick + armLength - bendSize, bendSize, bendSize, color);
+        // Arms
+        NVGRenderer.rect(cx + halfThick, cy - halfSize, halfSize, thickness, color); // Top-right
+        NVGRenderer.rect(cx - halfThick - halfSize, cy + halfSize - thickness, halfSize, thickness, color); // Bottom-left
+        NVGRenderer.rect(cx - halfSize, cy - halfThick - halfSize, thickness, halfSize, color); // Left-top
+        NVGRenderer.rect(cx + halfSize - thickness, cy + halfThick, thickness, halfSize, color); // Right-bottom
     }
 }

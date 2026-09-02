@@ -1,0 +1,11 @@
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\movement\FlySpeedModule.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\visual\CustomCapeModule.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\visual\CustomCrosshairModule.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\visual\UIEditorModule.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\visual\overlay\OverlayModule.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\visual\overlay\impl\durability\ToolDurabilityElement.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\feature\module\impl\visual\overlay\impl\spotify\SpotifySettings.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\renderer\CrosshairRenderer.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\client\screen\hud\UIEditorScreen.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\mixin\LightingFixMixin.java
+C:\Users\Administrator\Documents\vanta-client\src\main\java\wtf\opal\mixin\LightingStabilityMixin.java

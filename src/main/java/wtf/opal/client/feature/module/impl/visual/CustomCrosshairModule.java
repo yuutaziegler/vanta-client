@@ -10,17 +10,14 @@ import wtf.opal.client.feature.module.Module;
 import wtf.opal.client.feature.module.ModuleCategory;
 import wtf.opal.client.feature.module.property.impl.GroupProperty;
 import wtf.opal.client.feature.module.property.impl.bool.BooleanProperty;
-import wtf.opal.client.feature.module.property.impl.color.ColorProperty;
+import wtf.opal.client.feature.module.property.impl.ColorProperty;
 import wtf.opal.client.feature.module.property.impl.mode.ModeProperty;
 import wtf.opal.client.feature.module.property.impl.number.NumberProperty;
-import wtf.opal.event.impl.render.RenderCrosshairEvent;
-import wtf.opal.event.subscriber.Subscribe;
 
 @Environment(value=EnvType.CLIENT)
 public final class CustomCrosshairModule extends Module {
     
     // Basic settings
-    private final BooleanProperty enabled = new BooleanProperty("Enabled", true);
     private final ModeProperty<CrosshairStyle> style = new ModeProperty<CrosshairStyle>("Style", CrosshairStyle.CROSS);
     private final ColorProperty color = new ColorProperty("Color", 0xFFFFFFFF);
     private final BooleanProperty dynamicColor = new BooleanProperty("Dynamic Color", false);
@@ -46,7 +43,6 @@ public final class CustomCrosshairModule extends Module {
     public CustomCrosshairModule() {
         super("Custom Crosshair", "Customize your crosshair with pixel-perfect control", ModuleCategory.VISUAL);
         this.addProperties(
-            this.enabled,
             this.style,
             this.color,
             new GroupProperty("Dynamic", this.dynamicColor, this.dynamicColorTarget),
@@ -55,10 +51,6 @@ public final class CustomCrosshairModule extends Module {
             new GroupProperty("Outline", this.outline, this.outlineThickness),
             new GroupProperty("Advanced", this.shakeReduction, this.smoothAnimation)
         );
-    }
-
-    public boolean isEnabled() {
-        return this.enabled.getValue();
     }
 
     public CrosshairStyle getStyle() {
@@ -77,36 +69,36 @@ public final class CustomCrosshairModule extends Module {
         return this.dynamicColorTarget.getValue();
     }
 
-    public float getSize() {
-        return this.size.getValue().floatValue();
+    public double getSize() {
+        return this.size.getValue();
     }
 
-    public float getThickness() {
-        return this.thickness.getValue().floatValue();
+    public double getThickness() {
+        return this.thickness.getValue();
     }
 
-    public float getGap() {
-        return this.gap.getValue().floatValue();
+    public double getGap() {
+        return this.gap.getValue();
     }
 
     public boolean isShowDot() {
         return this.showDot.getValue();
     }
 
-    public float getDotSize() {
-        return this.dotSize.getValue().floatValue();
+    public double getDotSize() {
+        return this.dotSize.getValue();
     }
 
     public boolean isOutline() {
         return this.outline.getValue();
     }
 
-    public float getOutlineThickness() {
-        return this.outlineThickness.getValue().floatValue();
+    public double getOutlineThickness() {
+        return this.outlineThickness.getValue();
     }
 
-    public float getShakeReduction() {
-        return this.shakeReduction.getValue().floatValue();
+    public double getShakeReduction() {
+        return this.shakeReduction.getValue();
     }
 
     public boolean isSmoothAnimation() {
@@ -114,23 +106,24 @@ public final class CustomCrosshairModule extends Module {
     }
 
     @Environment(value=EnvType.CLIENT)
-    public static enum CrosshairStyle {
+    public enum CrosshairStyle {
         CROSS("Cross"),
         DOT("Dot"),
         CROSS_DOT("Cross + Dot"),
         CIRCLE("Circle"),
         SQUARE("Square"),
-        SWASTIKA("Swastika"),
         PLUS("Plus"),
         MINUS("Minus"),
+        SWASTIKA("Swastika"),
         CUSTOM("Custom");
 
         private final String name;
 
-        private CrosshairStyle(String name) {
+        CrosshairStyle(String name) {
             this.name = name;
         }
 
+        @Override
         public String toString() {
             return this.name;
         }

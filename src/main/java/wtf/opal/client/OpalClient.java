@@ -40,6 +40,11 @@ import wtf.opal.client.feature.module.impl.combat.PiercingModule;
 import wtf.opal.client.feature.module.impl.combat.ReachModule;
 import wtf.opal.client.feature.module.impl.combat.criticals.CriticalsModule;
 import wtf.opal.client.feature.module.impl.combat.killaura.KillAuraModule;
+import wtf.opal.client.feature.module.impl.movement.FlySpeedModule;
+import wtf.opal.client.feature.module.impl.visual.CustomCapeModule;
+import wtf.opal.client.feature.module.impl.visual.CustomCrosshairModule;
+import wtf.opal.client.feature.module.impl.visual.UIEditorModule;
+
 import wtf.opal.client.feature.module.impl.combat.killaura.LBKillAuraModule;
 import wtf.opal.client.feature.module.impl.combat.velocity.VelocityModule;
 import wtf.opal.client.feature.module.impl.exploit.ServerCrasherModule;
@@ -119,7 +124,7 @@ public final class OpalClient {
     public void runPostInitializations() {
         this.runHelperInitializations();
         if (this.moduleRepository == null) {
-            this.moduleRepository = ModuleRepository.fromModules(new LBKillAuraModule(), new KillAuraModule(), new BlockModule(), new ReachModule(), new PiercingModule(), new AutoClickerModule(), new AttackDelayModule(), new CriticalsModule(), new VelocityModule(), new AutoHeadModule(), new ClickGUIModule(), new FullbrightModule(), new AnimationsModule(), new OverlayModule(), new ChamsModule(), new ESPModule(), new BreakProgressModule(), new CapeModule(), new AmbienceModule(), new AttackEffectsModule(), new TabGUIModule(), new StreamerModeModule(), new HUDEditorModule(), new HudSettingsModule(), new NoHurtCameraModule(), new PostProcessingModule(), new MotionBlurModule(), new LBScaffoldModule(), new TimerModule(), new BreakerModule(), new FastBreakModule(), new FlightModule(), new SpeedModule(), new JumpCooldownModule(), new SprintModule(), new MovementFixModule(), new NoSlowModule(), new InventoryMoveModule(), new TargetStrafeModule(), new PhaseModule(), new LongJumpModule(), new FastStopModule(), new StrafeModule(), new PhysicsModule(), new SpiderModule(), new ClipperModule(), new SafeWalkModule(), new FastUseModule(), new NoFallModule(), new ChestStealerModule(), new InventoryManagerModule(), new AutoArmorModule(), new DisablerModule(), new AntiVoidModule(), new AutoToolModule(), new AutoChestModule(), new AutoHypixelModule(), new BlinkModule(), new NoRotateModule(), new SpammerModule(), new PartySpamModule(), new ServerCrasherModule(), new WebhookLoggerModule());
+            this.moduleRepository = ModuleRepository.fromModules(new LBKillAuraModule(), new KillAuraModule(), new BlockModule(), new ReachModule(), new PiercingModule(), new AutoClickerModule(), new AttackDelayModule(), new CriticalsModule(), new VelocityModule(), new AutoHeadModule(), new ClickGUIModule(), new FullbrightModule(), new AnimationsModule(), new OverlayModule(), new ChamsModule(), new ESPModule(), new BreakProgressModule(), new CapeModule(), new AmbienceModule(), new AttackEffectsModule(), new TabGUIModule(), new StreamerModeModule(), new HUDEditorModule(), new HudSettingsModule(), new NoHurtCameraModule(), new PostProcessingModule(), new MotionBlurModule(), new LBScaffoldModule(), new TimerModule(), new BreakerModule(), new FastBreakModule(), new FlightModule(), new SpeedModule(), new JumpCooldownModule(), new SprintModule(), new MovementFixModule(), new NoSlowModule(), new InventoryMoveModule(), new TargetStrafeModule(), new PhaseModule(), new LongJumpModule(), new FastStopModule(), new StrafeModule(), new PhysicsModule(), new SpiderModule(), new ClipperModule(), new SafeWalkModule(), new FastUseModule(), new NoFallModule(), new ChestStealerModule(), new InventoryManagerModule(), new AutoArmorModule(), new DisablerModule(), new AntiVoidModule(), new AutoToolModule(), new AutoChestModule(), new AutoHypixelModule(), new BlinkModule(), new NoRotateModule(), new SpammerModule(), new PartySpamModule(), new ServerCrasherModule(), new WebhookLoggerModule(), new FlySpeedModule(), new CustomCapeModule(), new CustomCrosshairModule(), new UIEditorModule());
         }
         SaveUtility.loadBindings();
         if (this.commandRepository == null) {

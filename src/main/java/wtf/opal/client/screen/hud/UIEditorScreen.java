@@ -8,6 +8,7 @@ import java.util.List;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.class_11909;
+import net.minecraft.class_11908;
 import net.minecraft.class_2561;
 import net.minecraft.class_332;
 import net.minecraft.class_437;
@@ -306,12 +307,12 @@ public class UIEditorScreen extends class_437 {
     }
 
     @Override
-    public boolean method_25415(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 72) { // H key
+    public boolean method_25404(class_11908 keyInput) {
+        if (keyInput.comp_4795() == 72) { // H key
             this.showHelp = !this.showHelp;
             return true;
         }
-        return super.method_25415(keyCode, scanCode, modifiers);
+        return super.method_25404(keyInput);
     }
 
     @Override

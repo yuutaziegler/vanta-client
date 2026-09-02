@@ -18,7 +18,6 @@ import wtf.opal.utility.player.MoveUtility;
 @Environment(value=EnvType.CLIENT)
 public final class FlySpeedModule extends Module {
     
-    private final BooleanProperty enabled = new BooleanProperty("Enabled", true);
     private final NumberProperty speed = new NumberProperty("Speed", 1.0, 0.1, 10.0, 0.1);
     private final BooleanProperty verticalEnabled = new BooleanProperty("Vertical Movement", true);
     private final NumberProperty verticalSpeed = new NumberProperty("Vertical Speed", 1.0, 0.1, 5.0, 0.1);
@@ -27,7 +26,6 @@ public final class FlySpeedModule extends Module {
     public FlySpeedModule() {
         super("Fly Speed", "Control your fly speed in creative mode", ModuleCategory.MOVEMENT);
         this.addProperties(
-            this.enabled,
             this.speed,
             this.verticalEnabled,
             this.verticalSpeed,
@@ -37,13 +35,13 @@ public final class FlySpeedModule extends Module {
 
     @Override
     protected void onEnable() {
-        // Speed is applied in PostMoveEvent
+        super.onEnable();
     }
 
     @Override
     protected void onDisable() {
+        super.onDisable();
         if (this.resetOnDisable.getValue() && Constants.mc.field_1724 != null) {
-            // Reset to default speed
             double defaultSpeed = MoveUtility.getSwiftnessSpeed(0.221);
             MoveUtility.setSpeed(Math.min(MoveUtility.getSpeed(), defaultSpeed));
         }
@@ -51,14 +49,11 @@ public final class FlySpeedModule extends Module {
 
     @Subscribe
     public void onPostMove(PostMoveEvent event) {
-        if (!this.enabled.getValue() || Constants.mc.field_1724 == null) {
+        if (!this.isEnabled() || Constants.mc.field_1724 == null) {
             return;
         }
         
-        // Only apply when player is in creative or spectator mode
-        if (!Constants.mc.field_1724.method_24576() && !Constants.mc.field_1724.method_5833()) {
-            return;
-        }
+
         
         double horizontalSpeed = this.speed.getValue();
         double vertSpeed = this.verticalEnabled.getValue() ? this.verticalSpeed.getValue() : 0.0;
@@ -79,10 +74,6 @@ public final class FlySpeedModule extends Module {
         Constants.mc.field_1724.method_18799(
             Constants.mc.field_1724.method_18798().method_38499(class_2350.class_2351.field_11052, motionY)
         );
-    }
-
-    public boolean isEnabled() {
-        return this.enabled.getValue();
     }
 
     public double getSpeed() {

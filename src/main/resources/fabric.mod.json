@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "terentx",
+  "version": "2.0.0",
+  "name": "TerentX",
+  "description": "we are charlie kirk!!!!!!",
+  "authors": [
+    "tear",
+    "charlie kirk"
+  ],
+  "contact": {
+    "homepage": "https://seegore.com",
+    "sources": "yes"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/terentx/logo.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "wtf.opal.OpalFabric"
+    ]
+  },
+  "mixins": [
+    "terentx.mixins.json"
+  ],
+  "accessWidener": "terentx.accesswidener",
+  "depends": {
+    "fabricloader": "\u003e\u003d0.17.2",
+    "minecraft": "~1.21.10",
+    "java": "\u003e\u003d21"
+  },
+  "jars": [
+    {
+      "file": "META-INF/jars/discord-game-sdk4j-v0.5.5.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3-natives-linux-arm64.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3-natives-linux.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3-natives-macos-arm64.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3-natives-macos.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3-natives-windows-arm64.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3-natives-windows.jar"
+    },
+    {
+      "file": "META-INF/jars/lwjgl-nanovg-3.3.3.jar"
+    },
+    {
+      "file": "META-INF/jars/mod-api-1.0.1.jar"
+    },
+    {
+      "file": "META-INF/jars/polyglot-23.1.0.jar"
+    }
+  ]
+}

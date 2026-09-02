@@ -1,0 +1,51 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  net.fabricmc.api.EnvType
+ *  net.fabricmc.api.Environment
+ */
+package wtf.opal.client.feature.module.impl.movement.speed.impl;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import wtf.opal.client.feature.module.impl.movement.speed.SpeedModule;
+import wtf.opal.client.feature.module.property.impl.bool.BooleanProperty;
+import wtf.opal.client.feature.module.property.impl.mode.ModuleMode;
+import wtf.opal.event.impl.game.input.MoveInputEvent;
+import wtf.opal.event.impl.game.player.movement.PostMoveEvent;
+import wtf.opal.event.subscriber.Subscribe;
+import wtf.opal.utility.player.MoveUtility;
+
+@Environment(value=EnvType.CLIENT)
+public final class StrafeSpeed
+extends ModuleMode<SpeedModule> {
+    private final BooleanProperty fastStop = (BooleanProperty)new BooleanProperty("Fast stop", true).hideIf(() -> ((SpeedModule)this.module).getActiveMode() != this);
+
+    public StrafeSpeed(SpeedModule module) {
+        super(module);
+        module.addProperties(this.fastStop);
+    }
+
+    @Override
+    public Enum<?> getEnumValue() {
+        return SpeedModule.Mode.STRAFE;
+    }
+
+    @Subscribe
+    public void onPostMove(PostMoveEvent event) {
+        if (MoveUtility.isMoving()) {
+            MoveUtility.setSpeed(MoveUtility.getSpeed());
+        } else if (this.fastStop.getValue().booleanValue()) {
+            MoveUtility.setSpeed(0.0);
+        }
+    }
+
+    @Subscribe
+    public void onMoveInput(MoveInputEvent event) {
+        if (MoveUtility.isMoving()) {
+            event.setJump(true);
+        }
+    }
+}
+

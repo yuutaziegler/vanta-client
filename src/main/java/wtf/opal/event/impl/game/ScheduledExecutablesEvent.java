@@ -1,0 +1,25 @@
+/*
+ * Decompiled with CFR 0.152.
+ * 
+ * Could not load the following classes:
+ *  net.fabricmc.api.EnvType
+ *  net.fabricmc.api.Environment
+ */
+package wtf.opal.event.impl.game;
+
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+
+@Environment(value=EnvType.CLIENT)
+public final class ScheduledExecutablesEvent {
+    private final boolean tick;
+
+    public ScheduledExecutablesEvent(boolean tick) {
+        this.tick = tick;
+    }
+
+    public boolean isTick() {
+        return this.tick;
+    }
+}
+

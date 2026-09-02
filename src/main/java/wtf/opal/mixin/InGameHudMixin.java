@@ -74,11 +74,13 @@ import wtf.opal.client.feature.helper.impl.LocalDataWatch;
 import wtf.opal.client.feature.helper.impl.player.slot.SlotHelper;
 import wtf.opal.client.feature.helper.impl.server.impl.HypixelServer;
 import wtf.opal.client.feature.module.impl.visual.AnimationsModule;
+import wtf.opal.client.feature.module.impl.visual.CustomCrosshairModule;
 import wtf.opal.client.feature.module.impl.visual.MotionBlurModule;
 import wtf.opal.client.feature.module.impl.visual.PostProcessingModule;
 import wtf.opal.client.feature.module.impl.visual.StreamerModeModule;
 import wtf.opal.client.feature.module.impl.visual.overlay.OverlayModule;
 import wtf.opal.client.feature.module.repository.ModuleRepository;
+import wtf.opal.client.renderer.CrosshairRenderer;
 import wtf.opal.client.renderer.MinecraftRenderer;
 import wtf.opal.client.renderer.NVGRenderer;
 import wtf.opal.client.renderer.shader.ShaderFramebuffer;
@@ -130,6 +132,27 @@ public abstract class InGameHudMixin {
             RenderSystem.getDevice().createCommandEncoder().clearColorAndDepthTextures(ShaderFramebuffer.getGlowFramebuffer().method_30277(), 0, ShaderFramebuffer.getGlowFramebuffer().method_30278(), 1.0);
         }
         MinecraftRenderer.render();
+    }
+
+    @Inject(method={"method_1736(Lnet/minecraft/class_332;Lnet/minecraft/class_9779;)V"}, at={@At(value="HEAD")}, cancellable=true)
+    private void renderCustomCrosshair(class_332 context, class_9779 tickCounter, CallbackInfo ci) {
+        CustomCrosshairModule crosshairModule = OpalClient.getInstance().getModuleRepository().getModule(CustomCrosshairModule.class);
+        if (crosshairModule == null || !crosshairModule.isEnabled() || Constants.mc.field_1724 == null) {
+            return;
+        }
+        ci.cancel();
+        if (Constants.mc.field_1755 != null) {
+            return;
+        }
+        // Spectators get no crosshair, same as vanilla
+        if (Constants.mc.field_1761 != null && Constants.mc.field_1761.method_2920() == net.minecraft.class_1934.field_9219) {
+            return;
+        }
+        boolean frameStarted = NVGRenderer.beginFrame();
+        CrosshairRenderer.render();
+        if (frameStarted) {
+            NVGRenderer.endFrameAndReset(true);
+        }
     }
 
     @Redirect(method={"tick()V"}, at=@At(value="INVOKE", target="Lnet/minecraft/entity/player/PlayerInventory;getSelectedStack()Lnet/minecraft/item/ItemStack;"))

@@ -1,14 +1,16 @@
 /*
  * Custom Crosshair Module for TerentX Client
+ * Build your own crosshair pixel by pixel (Custom style = 9x9 grid),
+ * or pick one of the built-in styles.
  */
 package wtf.opal.client.feature.module.impl.visual;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import wtf.opal.client.Constants;
 import wtf.opal.client.feature.module.Module;
 import wtf.opal.client.feature.module.ModuleCategory;
 import wtf.opal.client.feature.module.property.impl.GroupProperty;
+import wtf.opal.client.feature.module.property.impl.StringProperty;
 import wtf.opal.client.feature.module.property.impl.bool.BooleanProperty;
 import wtf.opal.client.feature.module.property.impl.ColorProperty;
 import wtf.opal.client.feature.module.property.impl.mode.ModeProperty;
@@ -16,32 +18,52 @@ import wtf.opal.client.feature.module.property.impl.number.NumberProperty;
 
 @Environment(value=EnvType.CLIENT)
 public final class CustomCrosshairModule extends Module {
-    
+
+    public static final int GRID_SIZE = 9;
+
     // Basic settings
     private final ModeProperty<CrosshairStyle> style = new ModeProperty<CrosshairStyle>("Style", CrosshairStyle.CROSS);
     private final ColorProperty color = new ColorProperty("Color", 0xFFFFFFFF);
     private final BooleanProperty dynamicColor = new BooleanProperty("Dynamic Color", false);
     private final ColorProperty dynamicColorTarget = new ColorProperty("Target Color", 0xFFFF5555);
-    
+
     // Size settings
     private final NumberProperty size = new NumberProperty("Size", 10.0, 5.0, 30.0, 1.0);
     private final NumberProperty thickness = new NumberProperty("Thickness", 2.0, 1.0, 6.0, 0.5);
     private final NumberProperty gap = new NumberProperty("Gap", 4.0, 0.0, 15.0, 0.5);
-    
+
     // Dot settings
     private final BooleanProperty showDot = new BooleanProperty("Show Dot", true);
     private final NumberProperty dotSize = new NumberProperty("Dot Size", 2.0, 1.0, 6.0, 0.5);
-    
+
     // Outline settings
     private final BooleanProperty outline = new BooleanProperty("Outline", false);
     private final NumberProperty outlineThickness = new NumberProperty("Outline Width", 1.0, 1.0, 3.0, 0.5);
-    
+
     // Advanced
     private final NumberProperty shakeReduction = new NumberProperty("Shake Reduction", 0.0, 0.0, 1.0, 0.1);
     private final BooleanProperty smoothAnimation = new BooleanProperty("Smooth", true);
-    
+
+    // Pixel-grid editor (Custom style): X/# = pixel on, anything else = off
+    private final NumberProperty pixelSize = new NumberProperty("Pixel Size", 2.0, 1.0, 5.0, 1.0);
+    private final StringProperty[] rows = new StringProperty[GRID_SIZE];
+
     public CustomCrosshairModule() {
-        super("Custom Crosshair", "Customize your crosshair with pixel-perfect control", ModuleCategory.VISUAL);
+        super("Custom Crosshair", "Customize your crosshair - build your own pixel by pixel with the Custom style", ModuleCategory.VISUAL);
+        String[] defaults = {
+            "....X....",
+            "....X....",
+            ".........",
+            ".........",
+            "XX..X..XX",
+            ".........",
+            ".........",
+            "....X....",
+            "....X...."
+        };
+        for (int i = 0; i < GRID_SIZE; ++i) {
+            this.rows[i] = new StringProperty("Row " + (i + 1) + " (X=pixel)", defaults[i]);
+        }
         this.addProperties(
             this.style,
             this.color,
@@ -49,7 +71,8 @@ public final class CustomCrosshairModule extends Module {
             new GroupProperty("Size", this.size, this.thickness, this.gap),
             new GroupProperty("Dot", this.showDot, this.dotSize),
             new GroupProperty("Outline", this.outline, this.outlineThickness),
-            new GroupProperty("Advanced", this.shakeReduction, this.smoothAnimation)
+            new GroupProperty("Advanced", this.shakeReduction, this.smoothAnimation),
+            new GroupProperty("Custom Pixel Grid", this.pixelSize, this.rows[0], this.rows[1], this.rows[2], this.rows[3], this.rows[4], this.rows[5], this.rows[6], this.rows[7], this.rows[8])
         );
     }
 
@@ -105,6 +128,23 @@ public final class CustomCrosshairModule extends Module {
         return this.smoothAnimation.getValue();
     }
 
+    public double getPixelSize() {
+        return this.pixelSize.getValue();
+    }
+
+    /** True when grid cell (row, col) is filled. */
+    public boolean isPixelOn(int row, int col) {
+        if (row < 0 || row >= GRID_SIZE || col < 0 || col >= GRID_SIZE) {
+            return false;
+        }
+        String line = this.rows[row].getValue();
+        if (line == null || col >= line.length()) {
+            return false;
+        }
+        char c = line.charAt(col);
+        return c == 'X' || c == 'x' || c == '#';
+    }
+
     @Environment(value=EnvType.CLIENT)
     public enum CrosshairStyle {
         CROSS("Cross"),
@@ -114,8 +154,8 @@ public final class CustomCrosshairModule extends Module {
         SQUARE("Square"),
         PLUS("Plus"),
         MINUS("Minus"),
-        SWASTIKA("Swastika"),
-        CUSTOM("Custom");
+        T_SHAPE("T Shape"),
+        CUSTOM("Custom (Pixels)");
 
         private final String name;
 

@@ -14,6 +14,7 @@ package wtf.opal.client.screen;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.class_11909;
 import net.minecraft.class_2561;
 import net.minecraft.class_332;
 import net.minecraft.class_364;
@@ -21,6 +22,9 @@ import net.minecraft.class_4185;
 import net.minecraft.class_437;
 import wtf.opal.client.OpalClient;
 import wtf.opal.client.feature.module.Module;
+import wtf.opal.client.renderer.LiquidGlassRenderer;
+import wtf.opal.client.renderer.NVGRenderer;
+import wtf.opal.client.screen.hud.UIEditorScreen;
 
 @Environment(value=EnvType.CLIENT)
 public class TerentXSettingsScreen
@@ -41,6 +45,12 @@ extends class_437 {
 
     public void method_25394(class_332 context, int mouseX, int mouseY, float delta) {
         this.method_25420(context, mouseX, mouseY, delta);
+        // Liquid glass header
+        boolean frameStarted = NVGRenderer.beginFrame();
+        LiquidGlassRenderer.drawGlassPanel((float)(this.field_22789 / 2 - 130), 4.0f, 260.0f, 20.0f, 7.0f);
+        if (frameStarted) {
+            NVGRenderer.endFrame(true);
+        }
         context.method_25300(this.field_22793, "TerentX Client Settings", this.field_22789 / 2, 10, -1);
         this.renderTabs(context, mouseX, mouseY);
         if (this.selectedTab.equals("MODS")) {
@@ -49,8 +59,19 @@ extends class_437 {
             this.renderPerformanceSettings(context, mouseX, mouseY);
         } else if (this.selectedTab.equals("VISUAL")) {
             this.renderVisualSettings(context, mouseX, mouseY);
+        } else if (this.selectedTab.equals("HUD")) {
+            this.renderHudSettings(context, mouseX, mouseY);
         }
         super.method_25394(context, mouseX, mouseY, delta);
+    }
+
+    private void renderHudSettings(class_332 context, int mouseX, int mouseY) {
+        int y = 60;
+        context.method_25303(this.field_22793, "\u00a7lHUD / UI Editor:", 20, y, -1);
+        boolean hovered = this.isHovered(mouseX, mouseY, 20, y + 15, this.field_22789 - 40, 24);
+        context.method_25294(20, y + 15, this.field_22789 - 20, y + 39, hovered ? -2144128205 : -2145246686);
+        context.method_25303(this.field_22793, "\u270f Open UI Editor (drag to move, corners to resize)", 30, y + 22, -1);
+        context.method_51433(this.field_22793, "HUD elements are only edited from the UI Editor - not from chat.", 20, y + 48, -5592406, false);
     }
 
     private void renderTabs(class_332 context, int mouseX, int mouseY) {
@@ -131,6 +152,13 @@ extends class_437 {
             this.scrollOffset = 0;
             return true;
         }
+        if (this.selectedTab.equals("HUD")) {
+            if (this.isHovered((int)mouseX, (int)mouseY, 20, 75, this.field_22789 - 40, 24)) {
+                this.field_22787.method_1507((class_437)new UIEditorScreen());
+                return true;
+            }
+            return false;
+        }
         if (this.selectedTab.equals("MODS")) {
             int startY = 80;
             int itemHeight = 30;
@@ -144,6 +172,13 @@ extends class_437 {
             }
         }
         return false;
+    }
+
+    public boolean method_25402(class_11909 click, boolean doubled) {
+        if (click.method_74245() != 0) {
+            return super.method_25402(click, doubled);
+        }
+        return this.mouseClicked(click.comp_4798(), click.comp_4799(), 0) || super.method_25402(click, doubled);
     }
 
     public boolean method_25401(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {

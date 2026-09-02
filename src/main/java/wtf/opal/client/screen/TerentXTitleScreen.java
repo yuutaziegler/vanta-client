@@ -26,6 +26,7 @@ import net.minecraft.class_442;
 import net.minecraft.class_500;
 import net.minecraft.class_526;
 import wtf.opal.client.Constants;
+import wtf.opal.client.renderer.LiquidGlassRenderer;
 import wtf.opal.client.renderer.NVGRenderer;
 import wtf.opal.client.renderer.image.NVGImageRenderer;
 import wtf.opal.client.renderer.repository.FontRepository;
@@ -169,8 +170,9 @@ extends class_442 {
                 targetWidth *= scale;
                 targetHeight *= scale;
             }
+            // Liquid glass button backing
+            LiquidGlassRenderer.drawGlassPanel(targetX - 4.0f, targetY - 4.0f, targetWidth + 8.0f, targetHeight + 8.0f, 14.0f);
             if ((iconImage = ImageRepository.getImage("image/" + this.iconPath)) != null) {
-                float opacity = this.slideInAnim * (1.0f + this.hoverAnim * 0.3f);
                 iconImage.drawImage(targetX, targetY, targetWidth, targetHeight);
             }
             if (hovered && this.hoverAnim > 0.5f) {
@@ -179,7 +181,8 @@ extends class_442 {
                 float tooltipX = targetX + targetWidth / 2.0f - tooltipWidth / 2.0f;
                 float tooltipY = targetY - 22.0f;
                 float tooltipPadding = 8.0f;
-                NVGRenderer.roundedRect(tooltipX - tooltipPadding, tooltipY - tooltipPadding, tooltipWidth + tooltipPadding * 2.0f, tooltipScale + tooltipPadding * 2.0f, 6.0f, ColorUtility.applyOpacity(-16777216, 0.85f * this.hoverAnim));
+                LiquidGlassRenderer.drawGlassPanel(tooltipX - tooltipPadding, tooltipY - tooltipPadding, tooltipWidth + tooltipPadding * 2.0f, tooltipScale + tooltipPadding * 2.0f, 6.0f);
+                NVGRenderer.roundedRect(tooltipX - tooltipPadding, tooltipY - tooltipPadding, tooltipWidth + tooltipPadding * 2.0f, tooltipScale + tooltipPadding * 2.0f, 6.0f, ColorUtility.applyOpacity(-16777216, 0.45f * this.hoverAnim));
                 FontRepository.getFont("productsans-medium").drawString(this.tooltip, tooltipX, tooltipY + 7.0f, tooltipScale, ColorUtility.applyOpacity(-1, this.hoverAnim));
             }
         }

@@ -26,7 +26,17 @@ public final class LightmapTextureManagerMixin {
     private LightmapTextureManagerMixin() {
     }
 
-    @Redirect(method={"update"}, at=@At(value="INVOKE", target="Ljava/lang/Double;floatValue()F", ordinal=1))
+    /*
+     * Lighting flicker fix:
+     * The lightmap update interpolates between the previous and the target gamma.
+     * Redirecting only one of the gamma reads (the old "ordinal=1" behaviour) made
+     * the interpolation oscillate between the raw and the boosted value, which the
+     * player saw as light "rubbing"/flickering every time the lightmap refreshed
+     * (most noticeable when turning the camera left/right).
+     * Redirecting every gamma read with the same factor keeps the curve consistent
+     * and completely removes the flicker.
+     */
+    @Redirect(method={"update"}, at=@At(value="INVOKE", target="Ljava/lang/Double;floatValue()F"))
     public float redirectGammaValue(Double d) {
         float factor = OpalClient.getInstance().getModuleRepository().getModule(FullbrightModule.class).isEnabled() ? 15.0f : 1.0f;
         return d.floatValue() * factor;

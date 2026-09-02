@@ -28,6 +28,7 @@ import wtf.opal.client.Constants;
 import wtf.opal.client.OpalClient;
 import wtf.opal.client.feature.module.ModuleCategory;
 import wtf.opal.client.feature.module.impl.visual.ClickGUIModule;
+import wtf.opal.client.renderer.LiquidGlassRenderer;
 import wtf.opal.client.renderer.NVGRenderer;
 import wtf.opal.client.renderer.image.NVGImageRenderer;
 import wtf.opal.client.renderer.repository.FontRepository;
@@ -61,12 +62,13 @@ extends class_437 {
     public void method_25420(class_332 context, int mouseX, int mouseY, float deltaTicks) {
         int w = Constants.mc.method_22683().method_4486();
         int h = Constants.mc.method_22683().method_4502();
-        context.method_25294(0, 0, w, h, -2013265920);
+        context.method_25294(0, 0, w, h, 0x55000000); // light dim so HUD elements stay visible
     }
 
     public void method_25394(class_332 context, int mouseX, int mouseY, float delta) {
         boolean frameStarted = NVGRenderer.beginFrame();
         displayingBinds = PlayerUtility.isKeyPressed(258);
+        LiquidGlassRenderer.drawGlassPanel(7.0f, 7.0f, 42.0f, 42.0f, 10.0f);
         NVGImageRenderer logo = ImageRepository.getImage("logo.png");
         if (logo != null) {
             logo.drawImage(10.0f, 10.0f, 36.0f, 36.0f);
@@ -96,6 +98,7 @@ extends class_437 {
         float searchHeight = 18.0f * panelScale;
         float searchX = ((float)Constants.mc.method_22683().method_4486() - searchWidth) / 2.0f;
         float searchY = 16.0f;
+        LiquidGlassRenderer.drawGlassPanel(searchX, searchY, searchWidth, searchHeight, 6.0f);
         NVGRenderer.roundedRect(searchX, searchY, searchWidth, searchHeight, 6.0f, -804121314);
         String displayStr = searchString.isEmpty() && !typingString ? "Search Modules..." : searchString + (typingString && System.currentTimeMillis() % 1000L > 500L ? "_" : "");
         FontRepository.getFont("productsans-medium").drawString(displayStr, searchX + 8.0f, searchY + 12.0f, 7.5f * panelScale, searchString.isEmpty() && !typingString ? -7829368 : -1);

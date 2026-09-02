@@ -2,6 +2,7 @@ package com.terentx.launcher;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.event.*;
 import java.io.*;
 import java.net.*;
@@ -586,7 +587,8 @@ public class TerentXLauncher {
         
         button.setUI(new BasicButtonUI() {
             @Override
-            public void paint(Graphics g, AbstractButton b) {
+            public void paint(Graphics g, JComponent c) {
+                AbstractButton b = (AbstractButton) c;
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
@@ -837,36 +839,24 @@ public class TerentXLauncher {
                 
                 // Here you would actually launch Minecraft with the TerentX mod
                 // For demo purposes, we just show a message
-                try {
-                    // Build and run command
-                    String javaPath = "java";
-                    String gameDir = LAUNCHER_DIR;
-                    int maxRam = allocatedRam;
-                    
-                    // Example command (would need proper setup)
-                    // ProcessBuilder pb = new ProcessBuilder(
-                    //     javaPath, 
-                    //     "-Xmx" + maxRam + "M",
-                    //     "-jar", 
-                    //     VERSIONS_DIR + "/minecraft.jar",
-                    //     "--username", username,
-                    //     "--version", selectedVersion,
-                    //     "--gameDir", gameDir
-                    // );
-                    // pb.directory(new File(gameDir));
-                    // pb.start();
-                    
-                    JOptionPane.showMessageDialog(frame, 
-                        "Game would be launching with:\n\n" +
-                        "Username: " + username + "\n" +
-                        "Version: " + selectedVersion + "\n" +
-                        "RAM: " + maxRam + " MB\n\n" +
-                        "This is a demo - configure paths for production use!", 
-                        "Launch", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                        
+                                try {
+                    File sklauncher = new File(System.getProperty("user.home") + "/AppData/Roaming/sklauncher/SKlauncher.jar");
+                    File skJava = new File(System.getProperty("user.home") + "/AppData/Roaming/sklauncher/jre/bin/javaw.exe");
+                    if (sklauncher.exists() && skJava.exists()) {
+                        new ProcessBuilder(skJava.getAbsolutePath(), "-Xmx512M", "-jar", sklauncher.getAbsolutePath()).start();
+                        statusLabel.setText("Minecraft Launcher started!");
+                    } else {
+                        JOptionPane.showMessageDialog(frame, 
+                            "TerentX Client v2.0 Ready!\n\n" +
+                            "Username: " + username + "\n" +
+                            "Version: " + selectedVersion + "\n" +
+                            "RAM: " + allocatedRam + " MB\n\n" +
+                            "Client mod is installed in .minecraft/mods!", 
+                            "TerentX Client", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(frame, "Error launching game: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Error launching: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         };

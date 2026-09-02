@@ -23,6 +23,7 @@ import wtf.opal.client.feature.module.impl.visual.overlay.impl.client.LogoElemen
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.durability.ToolDurabilityElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.dynamicisland.DynamicIslandElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.keystrokes.KeystrokesElement;
+import wtf.opal.client.feature.module.impl.visual.overlay.impl.laby.LabyInfoElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.modulelist.ToggledModulesElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.notifications.NotificationsElement;
 import wtf.opal.client.feature.module.impl.visual.overlay.impl.scaffold.ScaffoldElement;
@@ -76,6 +77,7 @@ extends Module {
         this.register(new KeystrokesElement(this));
         this.register(new ScaffoldElement(this));
         this.register(new ToolDurabilityElement(this));
+        this.register(new LabyInfoElement(this));
     }
 
     private <T extends IOverlayElement> T register(T element) {

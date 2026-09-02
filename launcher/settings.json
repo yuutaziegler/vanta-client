@@ -52,7 +52,8 @@
       "default": {
         "enabled": true,
         "mods": [
-          "terentx-client.jar"
+          "terentx-client.jar",
+          "reglass-1.1.0-1.21.9.jar"
         ]
       }
     }

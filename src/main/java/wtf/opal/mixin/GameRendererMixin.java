@@ -117,26 +117,11 @@ public abstract class GameRendererMixin {
         original.call(new Object[]{instance, allocator, tickCounter, renderBlockOutline, camera, positionMatrix, matrix4f, projectionMatrix, fogBuffer, fogColor, renderSky});
         class_4587 stack = new class_4587();
         stack.method_34425((Matrix4fc)positionMatrix);
-        // Stabilize light levels to prevent flickering when moving camera
-        stabilizeLightLevels(stack, tickCounter.method_60637(false));
         EventDispatcher.dispatch(new RenderWorldEvent(this.field_20948.method_23000(), stack, tickCounter.method_60637(false)));
         GlStateManager._depthMask((boolean)true);
         GlStateManager._disableBlend();
     }
 
-    private void stabilizeLightLevels(class_4587 stack, long tickDelta) {
-        // Get the sky light and block light from the stack
-        // This helps prevent flickering when camera moves by using stable light values
-        // The fix ensures light values don't recalculate every frame based on camera position
-        if (stack != null) {
-            // Apply a small offset to stabilize lighting
-            // This prevents the "jitter" effect when moving camera left/right
-            float skyLight = stack.method_34418();
-            float blockLight = stack.method_34419();
-            // Keep light values stable - don't recalculate based on camera movement
-            stack.method_34426(skyLight, blockLight);
-        }
-    }
 
     @Redirect(method={"findCrosshairTarget"}, at=@At(value="INVOKE", target="Lnet/minecraft/util/hit/HitResult;getType()Lnet/minecraft/util/hit/HitResult$Type;"))
     private class_239.class_240 redirectBlockHitResultType(class_239 instance) {

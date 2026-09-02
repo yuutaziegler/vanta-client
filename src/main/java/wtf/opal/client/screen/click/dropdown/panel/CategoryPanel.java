@@ -20,6 +20,7 @@ import wtf.opal.client.Constants;
 import wtf.opal.client.OpalClient;
 import wtf.opal.client.feature.module.Module;
 import wtf.opal.client.feature.module.ModuleCategory;
+import wtf.opal.client.renderer.LiquidGlassRenderer;
 import wtf.opal.client.renderer.NVGRenderer;
 import wtf.opal.client.renderer.repository.FontRepository;
 import wtf.opal.client.screen.click.OpalPanelComponent;
@@ -74,7 +75,8 @@ extends OpalPanelComponent {
         float scrollOffset = this.scroller.getAnimation().getValue();
         NVGRenderer.globalAlpha(openAnimationValue);
         float radius = 8.0f;
-        NVGRenderer.roundedRect(this.x, this.y + scrollOffset, this.width, totalHeight, radius, -183363546);
+        // Liquid glass panel body (ReGlass style)
+        LiquidGlassRenderer.drawGlassPanel(this.x, this.y + scrollOffset, this.width, totalHeight, radius);
         NVGRenderer.roundedRect(this.x, this.y + scrollOffset, this.width, this.height, radius, 1140884735);
         NVGRenderer.scissor(this.x, this.y, this.width, scissorHeight, () -> {
             FontRepository.getFont("productsans-bold").drawString(this.category.getName(), this.x + 6.0f, this.y + scrollOffset + 11.5f, 8.0f, -1);

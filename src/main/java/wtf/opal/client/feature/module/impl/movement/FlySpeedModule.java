@@ -1,10 +1,13 @@
 /*
- * Fly Speed Module - Control fly speed from menu
+ * Fly Speed Module - control creative/spectator fly speed from the menu.
+ * Works by scaling the player abilities fly speed (the value vanilla uses
+ * for creative flight), so it only affects actual flying - never walking.
  */
 package wtf.opal.client.feature.module.impl.movement;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.class_1656;
 import net.minecraft.class_2350;
 import wtf.opal.client.Constants;
 import wtf.opal.client.feature.module.Module;
@@ -13,18 +16,19 @@ import wtf.opal.client.feature.module.property.impl.bool.BooleanProperty;
 import wtf.opal.client.feature.module.property.impl.number.NumberProperty;
 import wtf.opal.event.impl.game.player.movement.PostMoveEvent;
 import wtf.opal.event.subscriber.Subscribe;
-import wtf.opal.utility.player.MoveUtility;
 
 @Environment(value=EnvType.CLIENT)
 public final class FlySpeedModule extends Module {
-    
-    private final NumberProperty speed = new NumberProperty("Speed", 1.0, 0.1, 10.0, 0.1);
+
+    private static final float DEFAULT_FLY_SPEED = 0.05f;
+
+    private final NumberProperty speed = new NumberProperty("Fly Speed", 1.0, 0.1, 10.0, 0.1);
     private final BooleanProperty verticalEnabled = new BooleanProperty("Vertical Movement", true);
     private final NumberProperty verticalSpeed = new NumberProperty("Vertical Speed", 1.0, 0.1, 5.0, 0.1);
     private final BooleanProperty resetOnDisable = new BooleanProperty("Reset Speed On Disable", true);
-    
+
     public FlySpeedModule() {
-        super("Fly Speed", "Control your fly speed in creative mode", ModuleCategory.MOVEMENT);
+        super("Fly Speed", "Change how fast you fly (creative/spectator) right from the menu", ModuleCategory.MOVEMENT);
         this.addProperties(
             this.speed,
             this.verticalEnabled,
@@ -34,16 +38,20 @@ public final class FlySpeedModule extends Module {
     }
 
     @Override
-    protected void onEnable() {
-        super.onEnable();
-    }
-
-    @Override
     protected void onDisable() {
         super.onDisable();
-        if (this.resetOnDisable.getValue() && Constants.mc.field_1724 != null) {
-            double defaultSpeed = MoveUtility.getSwiftnessSpeed(0.221);
-            MoveUtility.setSpeed(Math.min(MoveUtility.getSpeed(), defaultSpeed));
+        if (this.resetOnDisable.getValue()) {
+            this.resetFlySpeed();
+        }
+    }
+
+    private void resetFlySpeed() {
+        if (Constants.mc.field_1724 == null) {
+            return;
+        }
+        class_1656 abilities = Constants.mc.field_1724.method_31549();
+        if (abilities != null) {
+            abilities.field_7481 = DEFAULT_FLY_SPEED;
         }
     }
 
@@ -52,39 +60,36 @@ public final class FlySpeedModule extends Module {
         if (!this.isEnabled() || Constants.mc.field_1724 == null) {
             return;
         }
-        
-
-        
-        double horizontalSpeed = this.speed.getValue();
-        double vertSpeed = this.verticalEnabled.getValue() ? this.verticalSpeed.getValue() : 0.0;
-        
-        double motionY = 0.0;
-        if (Constants.mc.field_1690.field_1903.method_1434()) {
-            motionY = vertSpeed;
-        } else if (Constants.mc.field_1690.field_1832.method_1434()) {
-            motionY = -vertSpeed;
+        class_1656 abilities = Constants.mc.field_1724.method_31549();
+        if (abilities == null) {
+            return;
         }
-        
-        if (MoveUtility.isMoving()) {
-            MoveUtility.setSpeed(horizontalSpeed);
-        } else {
-            MoveUtility.setSpeed(0.0);
+        if (!abilities.field_7479) {
+            // Not flying (e.g. creative flight off): keep vanilla behaviour.
+            if (abilities.field_7481 != DEFAULT_FLY_SPEED) {
+                abilities.field_7481 = DEFAULT_FLY_SPEED;
+            }
+            return;
         }
-        
-        Constants.mc.field_1724.method_18799(
-            Constants.mc.field_1724.method_18798().method_38499(class_2350.class_2351.field_11052, motionY)
-        );
+        // Scale creative fly speed (vanilla default is 0.05).
+        abilities.field_7481 = (float)(0.05 * this.speed.getValue());
+        // Optional faster vertical movement while flying.
+        if (this.verticalEnabled.getValue()) {
+            double motionY = 0.0;
+            if (Constants.mc.field_1690.field_1903.method_1434()) {
+                motionY = this.verticalSpeed.getValue();
+            } else if (Constants.mc.field_1690.field_1832.method_1434()) {
+                motionY = -this.verticalSpeed.getValue();
+            }
+            if (motionY != 0.0) {
+                Constants.mc.field_1724.method_18799(
+                    Constants.mc.field_1724.method_18798().method_38499(class_2350.class_2351.field_11052, motionY)
+                );
+            }
+        }
     }
 
     public double getSpeed() {
         return this.speed.getValue();
-    }
-
-    public boolean isVerticalEnabled() {
-        return this.verticalEnabled.getValue();
-    }
-
-    public double getVerticalSpeed() {
-        return this.verticalSpeed.getValue();
     }
 }

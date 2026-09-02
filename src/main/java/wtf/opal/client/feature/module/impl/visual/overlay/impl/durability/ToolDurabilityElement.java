@@ -33,6 +33,7 @@ public final class ToolDurabilityElement implements IOverlayElement {
     // Main settings
     private final BooleanProperty enabled = new BooleanProperty("Enabled", true);
     private final ModeProperty<DisplayMode> displayMode = new ModeProperty<DisplayMode>("Mode", DisplayMode.PERCENTAGE);
+    private final BooleanProperty showItemName = new BooleanProperty("Show Item Name", false);
     
     // Visual settings
     private final BooleanProperty showBar = new BooleanProperty("Show Bar", true);
@@ -55,7 +56,7 @@ public final class ToolDurabilityElement implements IOverlayElement {
         module.addProperties(new GroupProperty("Tool Durability", 
             this.enabled, 
             this.displayMode,
-            new GroupProperty("Visuals", this.showBar, this.showNumbers, this.showIcon, this.showBlockCount, this.colorfulBar, this.barHeight, this.gradientBar),
+            new GroupProperty("Visuals", this.showBar, this.showNumbers, this.showIcon, this.showItemName, this.showBlockCount, this.colorfulBar, this.barHeight, this.gradientBar),
             this.position
         ));
     }
@@ -104,7 +105,19 @@ public final class ToolDurabilityElement implements IOverlayElement {
         
         String durabilityText = remainingDurability + "";
         String percentageText = Math.round(percentage * 100) + "%";
+        String hitsText = "\u2248" + remainingDurability + " hits";
+        String blocksText = "\u2248" + remainingDurability + " blocks";
         float textWidth = Math.max(MED_FONT.getStringWidth(durabilityText, 7.0f), MED_FONT.getStringWidth(percentageText, 7.0f));
+        switch ((DisplayMode)this.displayMode.getValue()) {
+            case HITS_LEFT:
+                textWidth = MED_FONT.getStringWidth(hitsText, 6.5f);
+                break;
+            case BLOCKS_LEFT:
+                textWidth = MED_FONT.getStringWidth(blocksText, 6.5f);
+                break;
+            default:
+                break;
+        }
         
         float width = padding * 2.0f;
         if (this.showIcon.getValue()) {
@@ -180,7 +193,21 @@ public final class ToolDurabilityElement implements IOverlayElement {
                     MED_FONT.drawString(durabilityText, currentX, textY - 4.0f, 6.0f, -1);
                     MED_FONT.drawString(percentageText, currentX, textY + 6.0f, 6.0f, getPercentageColor(percentage));
                     break;
+                case HITS_LEFT:
+                    MED_FONT.drawString(hitsText, currentX, textY, 6.5f, getPercentageColor(percentage));
+                    break;
+                case BLOCKS_LEFT:
+                    MED_FONT.drawString(blocksText, currentX, textY, 6.5f, getPercentageColor(percentage));
+                    break;
             }
+            // Extra info line: how many blocks this tool can still break
+            if (this.showBlockCount.getValue() && this.displayMode.getValue() != DisplayMode.BLOCKS_LEFT && this.displayMode.getValue() != DisplayMode.HITS_LEFT) {
+                MED_FONT.drawString("\u2248" + remainingDurability + " blocks left", currentX, textY + 9.0f, 5.0f, 0xFFBBBBBB);
+            }
+        }
+        if (this.showItemName.getValue()) {
+            String itemName = heldItem.method_7964().method_54160();
+            MED_FONT.drawString(itemName, x + padding, y - 8.0f, 5.5f, 0xFFDDDDDD);
         }
     }
     
@@ -216,7 +243,9 @@ public final class ToolDurabilityElement implements IOverlayElement {
     public static enum DisplayMode {
         NUMBERS("Numbers"),
         PERCENTAGE("Percentage"),
-        BOTH("Both");
+        BOTH("Both"),
+        HITS_LEFT("Hits Left"),
+        BLOCKS_LEFT("Blocks Left");
 
         private final String name;
 

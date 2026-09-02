@@ -48,6 +48,7 @@ import wtf.opal.client.renderer.repository.FontRepository;
 import wtf.opal.client.renderer.repository.ImageRepository;
 import wtf.opal.client.renderer.text.NVGTextRenderer;
 import wtf.opal.client.screen.hud.HUDEditorScreen;
+import wtf.opal.client.screen.hud.UIEditorScreen;
 
 @Environment(value=EnvType.CLIENT)
 public class TerentXClientMenuScreen
@@ -113,11 +114,10 @@ extends class_437 {
         // Draw glass panel outline
         LiquidGlassRenderer.drawGlassPanel(winX, winY, winW, winH, radius);
 
-        // Darken the rest of the screen - but check if Right Shift is held
-        // If Right Shift is held, reduce the darkening intensity
-        boolean rightShiftHeld = GLFW.glfwGetKey((long)Constants.mc.method_22683().method_4490(), 340) == 1;
-        float darkeningIntensity = rightShiftHeld ? 0.3f : 1.0f; // 30% intensity when Right Shift held
-        int fadeColor = (int)(120.0f * this.bgFade * darkeningIntensity);
+        // Keep the world/HUD visible behind the glass window: only a light
+        // vignette is applied, so HUD elements (like Tool Durability) never
+        // look darkened when the menu is opened with Right Shift.
+        int fadeColor = (int)(40.0f * this.bgFade);
         int screenW = Constants.mc.method_22683().method_4486();
         int screenH = Constants.mc.method_22683().method_4502();
         context.method_25294(0, 0, screenW, screenH, fadeColor << 24);
@@ -206,8 +206,8 @@ extends class_437 {
         float hudBtnY = winY + winH - 34.0f * menuScale;
         boolean hudHover = (float)mouseX >= winX + 8.0f * menuScale && (float)mouseX <= winX + sidebarWidth - 8.0f * menuScale && (float)mouseY >= hudBtnY && (float)mouseY <= hudBtnY + 26.0f * menuScale;
         NVGRenderer.roundedRect(winX + 8.0f * menuScale, hudBtnY, sidebarWidth - 16.0f * menuScale, 26.0f * menuScale, 6.0f * menuScale, hudHover ? -16739862 : 570484223);
-        float hudW = boldFont.getStringWidth("\u270f Edit HUD", 7.5f * menuScale);
-        boldFont.drawString("\u270f Edit HUD", winX + (sidebarWidth - hudW) / 2.0f, hudBtnY + 16.0f * menuScale, 7.5f * menuScale, -1);
+        float hudW = boldFont.getStringWidth("\u270f UI Editor", 7.5f * menuScale);
+        boldFont.drawString("\u270f UI Editor", winX + (sidebarWidth - hudW) / 2.0f, hudBtnY + 16.0f * menuScale, 7.5f * menuScale, -1);
         if (this.settingsModule != null) {
             this.renderSettings(mouseX, mouseY, mainX, winY, mainW, winH, boldFont, medFont, regFont);
         } else {
@@ -606,7 +606,7 @@ extends class_437 {
         float hudBtnY = winY + winH - 34.0f * menuScale;
         if (mouseX >= (double)(winX + 8.0f * menuScale) && mouseX <= (double)(winX + sidebarWidth - 8.0f * menuScale) && mouseY >= (double)hudBtnY && mouseY <= (double)(hudBtnY + 26.0f * menuScale)) {
             if (this.field_22787 != null) {
-                this.field_22787.method_1507((class_437)new HUDEditorScreen());
+                this.field_22787.method_1507((class_437)new UIEditorScreen());
             }
             return true;
         }

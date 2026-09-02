@@ -63,7 +63,7 @@ extends Module {
 
         private CapeType(String name) {
             this.name = name;
-            this.slug = name.replace(' ', '-').toLowerCase();
+            this.slug = name.replace(' ', '_').toLowerCase();
             this.identifier = class_2960.method_60655((String)"terentx", (String)("capes/" + this.slug + ".png"));
         }
 

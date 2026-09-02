@@ -1,0 +1,72 @@
+{
+  "launcher": {
+    "version": "2.0.0",
+    "autoUpdate": true,
+    "checkUpdatesOnStartup": true,
+    "minimizeToTray": false,
+    "closeOnLaunch": false
+  },
+  "game": {
+    "defaultUsername": "TerentXPlayer",
+    "defaultVersion": "1.20.4",
+    "defaultRam": 4096,
+    "minRam": 1024,
+    "maxRam": 16384,
+    "defaultResolution": {
+      "width": 1920,
+      "height": 1080,
+      "fullscreen": false
+    },
+    "javaPath": "auto",
+    "jvmArguments": [
+      "-XX:+UseG1GC",
+      "-XX:+ParallelRefProcEnabled",
+      "-XX:MaxGCPauseMillis=200"
+    ]
+  },
+  "connection": {
+    "autoConnect": false,
+    "defaultServer": "",
+    "quickConnect": [],
+    "recentServers": []
+  },
+  "ui": {
+    "theme": "dark",
+    "accentColor": "#6496FF",
+    "backgroundColor": "#0F0F19",
+    "sidebarWidth": 200,
+    "showNews": true,
+    "animationSpeed": 0.3
+  },
+  "paths": {
+    "gameDirectory": "",
+    "javaExecutable": "",
+    "resourcePacks": "",
+    "shaderPacks": ""
+  },
+  "mods": {
+    "enabled": true,
+    "modsDirectory": "mods",
+    "forceUpdate": false,
+    "modProfiles": {
+      "default": {
+        "enabled": true,
+        "mods": [
+          "terentx-client.jar"
+        ]
+      }
+    }
+  },
+  "features": {
+    "discordRPC": true,
+    "screenshotUpload": false,
+    "cloudSync": false,
+    "analytics": false
+  },
+  "advanced": {
+    "demoMode": false,
+    "debugMode": false,
+    "verboseLogging": false,
+    "devTools": false
+  }
+}

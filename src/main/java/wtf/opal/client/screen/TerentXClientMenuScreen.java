@@ -40,6 +40,7 @@ import wtf.opal.client.feature.module.property.impl.ColorProperty;
 import wtf.opal.client.feature.module.property.impl.bool.BooleanProperty;
 import wtf.opal.client.feature.module.property.impl.mode.ModeProperty;
 import wtf.opal.client.feature.module.property.impl.number.NumberProperty;
+import wtf.opal.client.renderer.LiquidGlassRenderer;
 import wtf.opal.client.renderer.NVGRenderer;
 import wtf.opal.client.renderer.image.NVGImageRenderer;
 import wtf.opal.client.renderer.repository.FontRepository;
@@ -88,6 +89,41 @@ extends class_437 {
         this.smoothScrollOffset = 0.0f;
     }
 
+    private void renderLiquidGlassBackground(float winX, float winY, float winW, float winH, float menuScale, int fadeAlpha, class_332 context) {
+        HudSettingsModule hudSettings = OpalClient.getInstance().getModuleRepository().getModule(HudSettingsModule.class);
+        if (hudSettings == null || !hudSettings.isEnabled()) {
+            // Fallback to original solid background when HUD settings are disabled
+            int screenW = Constants.mc.method_22683().method_4486();
+            int screenH = Constants.mc.method_22683().method_4502();
+            context.method_25294(0, 0, screenW, screenH, fadeAlpha << 24);
+            NVGRenderer.roundedRect(winX, winY, winW, winH, 10.0f * menuScale, -267249108);
+            NVGRenderer.roundedRect(winX, winY, sidebarWidth, winH, 10.0f * menuScale, -183692510);
+            return;
+        }
+
+        float radius = hudSettings.getCornerRadius();
+        float glassOpacity = hudSettings.getGlassOpacity();
+        float frostOpacity = hudSettings.getGlassOpacity() * 0.5f;
+
+        // Apply liquid glass effect to the main window background
+        LiquidGlassRenderer.drawGlassPanel(winX, winY, winW, winH, radius);
+
+        // Draw glass panel outline
+        LiquidGlassRenderer.drawGlassPanel(winX, winY, winW, winH, radius);
+
+        // Darken the rest of the screen - but check if Right Shift is held
+        // If Right Shift is held, reduce the darkening intensity
+        boolean rightShiftHeld = GLFW.glfwGetKey((long)Constants.mc.method_22683().method_4490(), 340) == 1;
+        float darkeningIntensity = rightShiftHeld ? 0.3f : 1.0f; // 30% intensity when Right Shift held
+        int fadeColor = (int)(120.0f * this.bgFade * darkeningIntensity);
+        int screenW = Constants.mc.method_22683().method_4486();
+        int screenH = Constants.mc.method_22683().method_4502();
+        context.method_25294(0, 0, screenW, screenH, fadeColor << 24);
+
+        // Draw sidebar with glass effect
+        NVGRenderer.roundedRect(winX, winY, sidebarWidth, winH, 10.0f * menuScale, -183692510);
+    }
+
     public void method_25394(class_332 context, int mouseX, int mouseY, float delta) {
         Tab[] tabs;
         this.bgFade += (1.0f - this.bgFade) * 0.22f;
@@ -96,7 +132,6 @@ extends class_437 {
         this.smoothSettingsScrollOffset += ((float)this.settingsScrollOffset - this.smoothSettingsScrollOffset) * 0.3f;
         this.hoveredTooltip = null;
         int fadeAlpha = (int)(120.0f * this.bgFade);
-        context.method_25294(0, 0, this.field_22789, this.field_22790, fadeAlpha << 24);
         float screenW = Constants.mc.method_22683().method_4486();
         float screenH = Constants.mc.method_22683().method_4502();
         float baseW = 680.0f;
@@ -122,6 +157,7 @@ extends class_437 {
         NVGTextRenderer boldFont = FontRepository.getFont("inter-bold");
         NVGTextRenderer medFont = FontRepository.getFont("inter-medium");
         NVGTextRenderer regFont = FontRepository.getFont("inter-regular");
+        renderLiquidGlassBackground(winX, winY, winW, winH, menuScale, fadeAlpha, context);
         String scaleInfo = String.format("Scale: %.1fx", Float.valueOf(menuScale));
         float scaleInfoW = medFont.getStringWidth(scaleInfo, 7.5f);
         float scaleCenterX = (screenW - scaleInfoW) / 2.0f;
